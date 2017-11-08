@@ -17,10 +17,12 @@
 #include <map>
 #include <functional>
 
+#include "tools.h"
+#include "GameMem.h"
+#include "Player.h"
+
 using namespace std;
 
-const size_t RAM_SIZE      = 0x2000000;
-const size_t RAM_BASE_ADDR = 0x80000000;
 const char* GAME_ID = "GALE01";
 
 vector<pair<size_t, void*>> getPages(HANDLE proc, string keyword, size_t keysize = 0){
@@ -46,222 +48,14 @@ vector<pair<size_t, void*>> getPages(HANDLE proc, string keyword, size_t keysize
 	return ret;
 }
 
-char reverse(char c){
-	char ret = 0;
-	for(int i = 0; i < 8; i++){
-		ret <<= 1;
-		ret |= (c & 1u);
-		c >>= 1;
-	}return ret;
-}
-
-float reverseFloat(char* p){
-	float ret;
-
-	char* retBytes = (char*) &ret;
-
-	retBytes[0] = p[3];
-	retBytes[1] = p[2];
-	retBytes[2] = p[1];
-	retBytes[3] = p[0];
-
-	return ret;
-}
-
-unsigned reverseUInt16(char* p){
-	unsigned ret = 0;
-	char* retBytes = (char*)&ret;
-
-	retBytes[0] = p[1];
-	retBytes[1] = p[0];
-
-	return ret;
-}
-
-unsigned long reverseUInt32(char* p){
-	unsigned long ret = 0;
-	char* retBytes = (char*)&ret;
-
-	retBytes[0] = (p[3]);
-	retBytes[1] = (p[2]);
-	retBytes[2] = (p[1]);
-	retBytes[3] = (p[0]);
-
-	return ret;
-}
-
-unsigned long long reverseUInt64(char* p){
-	unsigned long long ret = 0;
-	char* retBytes = (char*)&ret;
-
-	retBytes[0] = (p[7]);
-	retBytes[1] = (p[6]);
-	retBytes[2] = (p[5]);
-	retBytes[3] = (p[4]);
-	retBytes[4] = (p[3]);
-	retBytes[5] = (p[2]);
-	retBytes[6] = (p[1]);
-	retBytes[7] = (p[0]);
-
-	return ret;
-}
-
-struct GameMem{
-	GameMem(){}
-
-	GameMem(pair<size_t,void*> info, HANDLE proc): n(info.first), addr(info.second), m_proc(proc){
-		data = new char[n];
-		update();
-	}
-
-	GameMem(size_t size, void* addr, HANDLE proc): n(size), addr(addr), m_proc(proc){
-		data = new char[n];
-		update();
-	}
-
-	HANDLE getProcess() const{
-		return m_proc;
-	}
-
-	void resetPage(pair<size_t,void*> page){
-		if(n != page.first){
-			delete [] data;
-			n = page.first;
-			data = new char[n];
-		}
-
-		addr = page.second;
-		update();
-	}
-
-	char& operator [] (int idx){
-		return data[idx];
-	}
-
-	void update(){
-		size_t read;
-		ReadProcessMemory(m_proc, addr, data, n, &read);
-	}
-
-	void writeString(int offset, char* str, size_t n){
-		size_t written;
-		WriteProcessMemory(m_proc, addr + offset, str, n, &written);
-	}
-
-	void writeFloat(int offset, float f){
-		float buffer = reverseFloat((char*)&f);
-		writeString(offset, (char*)&buffer, sizeof(float));
-	}
-
-	void writeUInt16(int offset, unsigned i){
-		unsigned buffer = reverseUInt16((char*)&i);
-		writeString(offset, (char*)&buffer, sizeof(unsigned));
-	}
-
-	void snapshot(char* buffer){
-		memcpy(buffer, data, n);
-	}
-
-private:
-	char* data;
-	int n;
-
-	void* addr;
-
-	HANDLE m_proc;
-} mem;
-
-struct Player{
-	Player() {}
-
-	Player(GameMem& mem, size_t staticPlayer): m_playerStatic(staticPlayer){
-		update(mem);
-	}
-
-	void locateMemory(GameMem& mem){
-		m_playerEntity = reverseUInt32(&mem[m_playerStatic + 0xB0]) - RAM_BASE_ADDR;
-		m_playerData = reverseUInt32(&mem[m_playerEntity + 0x2C]) - RAM_BASE_ADDR;
-	}
-
-	void update(GameMem& mem){
-		locateMemory(mem);
-
-		x   = reverseFloat(&mem[m_playerData + OFFSET_X]);
-		y   = reverseFloat(&mem[m_playerData + OFFSET_Y]);
-		vx  = reverseFloat(&mem[m_playerData + OFFSET_VX]);
-		vy  = reverseFloat(&mem[m_playerData + OFFSET_VY]);
-		dmg = reverseFloat(&mem[m_playerData + OFFSET_DMG]);
-	}
-
-	size_t getStaticLocation() const { return m_playerStatic; }
-	size_t getEntityLocation() const { return m_playerEntity; }
-	size_t getDataLocation()   const { return m_playerData; }
-
-	float getX() const { return x; }
-	float getY() const { return y; }
-	float getVx() const { return vx; }
-	float getVy() const { return vy; }
-	float getDmg() const { return dmg; }
-
-	void setX(GameMem& mem, float val){
-		mem.writeFloat(m_playerData + OFFSET_X, val);
-	}
-
-	void setY(GameMem& mem, float val){
-		mem.writeFloat(m_playerData + OFFSET_Y, val);
-	}
-
-	void setVx(GameMem& mem, float val){
-		mem.writeFloat(m_playerData + OFFSET_VX, val);
-	}
-
-	void setVy(GameMem& mem, float val){
-		mem.writeFloat(m_playerData + OFFSET_VY, val);
-	}
-
-	void setDmg(GameMem& mem, float val){
-		mem.writeFloat(m_playerData + OFFSET_DMG, val);
-
-		unsigned n = val;
-		mem.writeUInt16(m_playerStatic + OFFSET_DMG_VIS, n);//change the displayed damage as well
-	}
-
-	enum : size_t {
-		OFFSET_X = 0xB0,
-		OFFSET_Y = 0xB4,
-		OFFSET_VX = 0x80,
-		OFFSET_VY = 0x84,
-		OFFSET_DMG = 0x1830,
-		OFFSET_DMG_VIS = 0x60
-	};
-
-private:
-	size_t m_playerStatic = 0;
-	size_t m_playerEntity = 0;
-	size_t m_playerData = 0;
-
-	float x = 0;
-	float y = 0;
-	float vx = 0;
-	float vy = 0;
-	float dmg = 0;
-};
-
-/*
- * 2000000
- * 4a119a
- * 80c7d32
- */
-
+GameMem mem;
 Player player[4];
 
 enum State { RUN, STOP } state;
 
 map<string, function<int(istringstream&)>> commands;
 
-const size_t PLAYER_LOC[4] = {
-	0x453080, 0x453F10, 0x454DA0, 0x455C30
-};
+const size_t PLAYER_LOC[4] = { 0x453080, 0x453F10, 0x454DA0, 0x455C30 };
 
 void updatePlayers(){
 	for(int i = 0; i < 4; i++){
@@ -308,6 +102,7 @@ void init(){
 				cout << "  vx:\t"  << player[i - 1].getVx();
 				cout << "  vy:\t"  << player[i - 1].getVy();
 				cout << "  dmg:\t" << player[i - 1].getDmg();
+				cout << "  stock:\t" << (int)player[i - 1].getStock();
 				cout << "                            ";
 			}cout << endl;
 		}else{
@@ -362,6 +157,8 @@ void init(){
 				p.setVy(mem, val);
 			}else if(var == "dmg" || var == "damage"){
 				p.setDmg(mem, val);
+			}else if(var == "stock"){
+				p.setStock(mem, val);
 			}else{
 				cout << "Unknown variable." << endl;
 			}
