@@ -18,6 +18,10 @@ GameMem::GameMem(size_t size, void* addr, HANDLE proc): n(size), addr(addr), m_p
 	update();
 }
 
+int GameMem::getSize() const{
+	return n;
+}
+
 HANDLE GameMem::getProcess() const{
 	return m_proc;
 }
@@ -61,6 +65,7 @@ void GameMem::writeUInt16(int offset, unsigned i){
 	writeString(offset, (char*)&buffer, sizeof(unsigned));
 }
 
-void GameMem::snapshot(char* buffer){
-	memcpy(buffer, data, n);
+void GameMem::snapshot(char* buffer, size_t start, size_t size){
+	if(size == 0)size = n - start;
+	memcpy(buffer, data + start, size);
 }

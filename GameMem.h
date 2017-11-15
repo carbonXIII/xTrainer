@@ -18,13 +18,14 @@ public:
 	GameMem(std::pair<size_t,void*> info, HANDLE proc);
 	GameMem(size_t size, void* addr, HANDLE proc);
 
+	int getSize() const;
 	HANDLE getProcess() const;
 	void resetPage(std::pair<size_t,void*> page);
 
 	char& operator [] (int idx);
 
 	void update();
-	void snapshot(char* buffer);
+	void snapshot(char* buffer, size_t start = 0, size_t size = 0);
 
 	void writeString(int offset, char* str, size_t n);
 

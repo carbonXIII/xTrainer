@@ -20,4 +20,6 @@ extern unsigned reverseUInt16(char* p);
 extern unsigned long reverseUInt32(char* p);
 extern unsigned long long reverseUInt64(char* p);
 
+extern bool contains(const char* str, const char* key);//basic string search
+
 #endif /* TOOLS_H_ */

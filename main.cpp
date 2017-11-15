@@ -11,6 +11,7 @@
 #include <conio.h>
 
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <cstring>
 #include <sstream>
@@ -43,6 +44,31 @@ vector<pair<size_t, void*>> getPages(HANDLE proc, string keyword, size_t keysize
 		for(i = 0; i < keyword.size(); i++) if(keyword[i] != buffer[i])break;
 		if(i == keyword.size())
 			ret.push_back(make_pair(info.RegionSize, info.BaseAddress));
+	}
+
+	return ret;
+}
+
+vector<pair<unsigned long, string>> findProcess(){
+	vector<pair<unsigned long, string>> ret;
+
+	vector<unsigned long> buffer(100);
+	char strbuf[100];
+
+	unsigned long size;
+	do{
+		buffer.resize(buffer.size() + 100);
+		EnumProcesses(buffer.data(), buffer.size()*sizeof(unsigned long), &size);
+	}while(size/sizeof(unsigned long) == buffer.size());
+	buffer.resize(size/sizeof(unsigned long));
+
+	for(int i = 0; i < buffer.size(); i++){
+		HANDLE h = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, buffer[i]);
+
+		unsigned long strSize;
+		if(h && GetProcessImageFileNameA(h, strbuf, 100) && contains(strbuf, "dolphin")){
+			ret.push_back(make_pair(buffer[i], string(strbuf)));
+		}
 	}
 
 	return ret;
@@ -166,14 +192,56 @@ void init(){
 			cout << "Unknown entity." << endl;
 		}return 0;
 	};
+
+	commands["snapshot"] = [](istringstream& ss){
+		string filename; ss >> filename;
+		if(filename.empty()){
+			cout << "USAGE: snapshot filename" << endl;
+			return 0;
+		}
+
+		size_t start = 0, size = 0; ss >> start >> size;
+		if(size == 0)size = mem.getSize() - start;
+
+		char* buffer = new char[size];
+		mem.snapshot(buffer, start, size);
+
+		ofstream fout(filename);
+		fout.write(buffer, mem.getSize());
+		fout.close();
+
+		return 0;
+	};
 }
 
 int main(){
 	init();
 
-	int pid;
-	cout << "Input target process's PID: ";
-	cin >> pid;
+	vector<pair<unsigned long, string>> p = findProcess();
+
+	int option;
+	unsigned long pid;
+	if(p.size() != 0){
+		cout << "Found 1 or more potential Dolphin instances.\n Select one, or select \'Not listed\' to input the PID manually." << endl;
+		cout << "\tExecutable Name                                              | PID" << endl;
+		int i = 0;
+		for(; i < p.size(); i++){
+			cout << (i+1) << ".\t";
+			if(p[i].second.size() > 60){
+				cout << "...";
+				cout << p[i].second.substr(p[i].second.size() - 57);
+			}else{
+				cout << p[i].second;
+				for(int j = 0; j < 60 - p[i].second.size(); j++)cout << " ";
+			}cout << "  ";
+			cout << p[i].first << endl;
+		}cout << (i+1) << ". Not listed." << endl;
+
+		cin >> option;
+	}if(p.size() == 0 || option > p.size()){
+		cout << "Input the PID of the target process: ";
+		cin >> pid;
+	}else pid = p[option - 1].first;
 
 	HANDLE target = OpenProcess(PROCESS_ALL_ACCESS, true, pid);
 
@@ -186,12 +254,7 @@ int main(){
 
 	mem = GameMem(pages[0], target);
 
-	cout << string(&mem[0],&mem[6]) << endl;
-
 	updatePlayers();
-
-	cout << "Player 1 entity address: " << std::hex << player[0].getEntityLocation() << std::dec << endl;
-	cout << "Player 1 data address:   " << std::hex << player[0].getDataLocation() << std::dec << endl;
 
 	char* buffer = new char[100];
 	while(state == State::RUN){
@@ -199,8 +262,6 @@ int main(){
 		cin.getline(buffer, 100);
 		processCommand(string(buffer));
 	}
-
-	system("pause");
 
 	delete [] buffer;
 
