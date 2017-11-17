@@ -20,13 +20,14 @@
 
 #include "tools.h"
 #include "GameMem.h"
+#include "GameRegisters.h"
 #include "Player.h"
 
 using namespace std;
 
 const char* GAME_ID = "GALE01";
 
-vector<pair<size_t, void*>> getPages(HANDLE proc, string keyword, size_t keysize = 0){
+vector<pair<size_t, void*>> getPages(HANDLE proc, size_t keysize = 0, string keyword = "", vector<size_t> keyaddr = vector<size_t>()){
 	vector<pair<size_t, void*>> ret;
 
 	vector<char> buffer;
@@ -35,15 +36,24 @@ vector<pair<size_t, void*>> getPages(HANDLE proc, string keyword, size_t keysize
 	for(void* p = 0; VirtualQueryEx(proc, p, &info, sizeof(info)) == sizeof(info); p += info.RegionSize){
 		if(keysize && info.RegionSize != keysize)continue;
 
-		buffer.resize(info.RegionSize);
-
-		size_t read;
-		ReadProcessMemory(proc, info.BaseAddress, buffer.data(), info.RegionSize, &read);
-
 		unsigned i;
-		for(i = 0; i < keyword.size(); i++) if(keyword[i] != buffer[i])break;
-		if(i == keyword.size())
-			ret.push_back(make_pair(info.RegionSize, info.BaseAddress));
+		for(i = 0; i < keyaddr.size(); i++){
+			if((size_t)info.BaseAddress > keyaddr[i] || (size_t)info.BaseAddress + info.RegionSize <= keyaddr[i])break;
+		}if(i != keyaddr.size())continue;
+
+		if(!keyword.empty()){
+			buffer.resize(info.RegionSize);
+
+			size_t read;
+			ReadProcessMemory(proc, info.BaseAddress, buffer.data(), info.RegionSize, &read);
+
+			unsigned i;
+			for(i = 0; i < keyword.size(); i++) if(keyword[i] != buffer[i])break;
+			if(i != keyword.size())continue;
+		}
+
+
+		ret.push_back(make_pair(info.RegionSize, info.BaseAddress));
 	}
 
 	return ret;
@@ -75,6 +85,7 @@ vector<pair<unsigned long, string>> findProcess(){
 }
 
 GameMem mem;
+GameRegisters reg;
 Player player[4];
 
 enum State { RUN, STOP } state;
@@ -85,7 +96,7 @@ const size_t PLAYER_LOC[4] = { 0x453080, 0x453F10, 0x454DA0, 0x455C30 };
 
 void updatePlayers(){
 	for(int i = 0; i < 4; i++){
-		if(reverseUInt32(&mem[PLAYER_LOC[i]]) != 0){
+		if(getUInt32(&mem[PLAYER_LOC[i]], true) != 0){
 			cout << "Player " << (i + 1) << " in game." << endl;
 			player[i] = Player(mem, PLAYER_LOC[i]);
 		}
@@ -112,8 +123,8 @@ void init(){
 	commands["display"] = [](istringstream& ss){
 		string type; ss >> type;
 		if(type == "player"){
+			int i; ss >> i;
 			while(true){
-				int i; ss >> i;
 				mem.update();
 				player[i - 1].update(mem);
 
@@ -131,7 +142,25 @@ void init(){
 				cout << "  stock:\t" << (int)player[i - 1].getStock();
 				cout << "                            ";
 			}cout << endl;
-		}else{
+		}else if(type == "register"){
+			string regName; ss >> regName;
+
+			if(regName == "PC"){
+				while(true){
+					reg.update();
+
+					if(kbhit()){
+						char c = getch();
+						if(c == 'q')break;
+					}
+
+					cout << "\r" << std::hex << reg.getPC() << std::dec;
+				}cout << endl;
+			}else{
+				cout << "Unknown register." << endl;
+			}
+		}
+		else{
 			cout << "Unknown entity." << endl;
 		}return 0;
 	};
@@ -147,7 +176,7 @@ void init(){
 	};
 
 	commands["syncPage"] = [](istringstream&){
-		auto pages = getPages(mem.getProcess(), GAME_ID, RAM_SIZE);
+		auto pages = getPages(mem.getProcess(), RAM_SIZE, GAME_ID);
 		if(pages.size() == 0){
 			cout << "Could not find game memory. Is the game running?" << endl;
 			system("PAUSE");
@@ -214,38 +243,40 @@ void init(){
 	};
 }
 
+//Register page, base address: 0x7ff622da6000
+
 int main(){
 	init();
 
-	vector<pair<unsigned long, string>> p = findProcess();
+	vector<pair<unsigned long, string>> procs = findProcess();
 
 	int option;
 	unsigned long pid;
-	if(p.size() != 0){
+	if(procs.size() != 0){
 		cout << "Found 1 or more potential Dolphin instances.\n Select one, or select \'Not listed\' to input the PID manually." << endl;
 		cout << "\tExecutable Name                                              | PID" << endl;
 		int i = 0;
-		for(; i < p.size(); i++){
+		for(; i < procs.size(); i++){
 			cout << (i+1) << ".\t";
-			if(p[i].second.size() > 60){
+			if(procs[i].second.size() > 60){
 				cout << "...";
-				cout << p[i].second.substr(p[i].second.size() - 57);
+				cout << procs[i].second.substr(procs[i].second.size() - 57);
 			}else{
-				cout << p[i].second;
-				for(int j = 0; j < 60 - p[i].second.size(); j++)cout << " ";
+				cout << procs[i].second;
+				for(int j = 0; j < 60 - procs[i].second.size(); j++)cout << " ";
 			}cout << "  ";
-			cout << p[i].first << endl;
+			cout << procs[i].first << endl;
 		}cout << (i+1) << ". Not listed." << endl;
 
 		cin >> option;
-	}if(p.size() == 0 || option > p.size()){
+	}if(procs.size() == 0 || option > procs.size()){
 		cout << "Input the PID of the target process: ";
 		cin >> pid;
-	}else pid = p[option - 1].first;
+	}else pid = procs[option - 1].first;
 
 	HANDLE target = OpenProcess(PROCESS_ALL_ACCESS, true, pid);
 
-	auto pages = getPages(target, GAME_ID, RAM_SIZE);
+	auto pages = getPages(target, RAM_SIZE, GAME_ID);
 	if(pages.size() == 0){
 		cout << "Could not find game memory. Is the game running?" << endl;
 		system("PAUSE");
@@ -253,6 +284,13 @@ int main(){
 	}
 
 	mem = GameMem(pages[0], target);
+
+	vector<size_t> keyaddr(1, 0x7FF622DAC520);//PC address
+	auto regPages = getPages(target, 0, "", keyaddr);
+
+	cout << regPages[0].second << endl;
+
+	reg = GameRegisters(regPages[0], target);
 
 	updatePlayers();
 

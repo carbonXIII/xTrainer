@@ -14,11 +14,12 @@
 const size_t RAM_SIZE      = 0x2000000;
 const size_t RAM_BASE_ADDR = 0x80000000;
 
-//Big-Endian Support Functions
-extern float reverseFloat(char* p);
-extern unsigned reverseUInt16(char* p);
-extern unsigned long reverseUInt32(char* p);
-extern unsigned long long reverseUInt64(char* p);
+//Memory functions (includes Big-Endian support)
+extern float getFloat(char* p, bool bigEndian);
+extern double getDouble(char* p, bool bigEndian);
+extern unsigned getUInt16(char* p, bool bigEndian);
+extern unsigned long getUInt32(char* p, bool bigEndian);
+extern unsigned long long getUInt64(char* p, bool bigEndian);
 
 extern bool contains(const char* str, const char* key);//basic string search
 

@@ -56,12 +56,12 @@ void GameMem::writeChar(int offset, char c){
 }
 
 void GameMem::writeFloat(int offset, float f){
-	float buffer = reverseFloat((char*)&f);
+	float buffer = getFloat((char*)&f, true);
 	writeString(offset, (char*)&buffer, sizeof(float));
 }
 
 void GameMem::writeUInt16(int offset, unsigned i){
-	unsigned buffer = reverseUInt16((char*)&i);
+	unsigned buffer = getUInt16((char*)&i, true);
 	writeString(offset, (char*)&buffer, sizeof(unsigned));
 }
 

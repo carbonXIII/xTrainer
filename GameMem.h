@@ -33,7 +33,7 @@ public:
 	void writeFloat(int offset, float f);
 	void writeUInt16(int offset, unsigned i);
 
-private:
+protected:
 	char* data = nullptr;
 	int n = 0;
 

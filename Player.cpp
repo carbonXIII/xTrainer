@@ -14,18 +14,18 @@ Player::Player(GameMem& mem, size_t staticPlayer): m_playerStatic(staticPlayer){
 }
 
 void Player::locateAddreses(GameMem& mem){
-	m_playerEntity = reverseUInt32(&mem[m_playerStatic + 0xB0]) - RAM_BASE_ADDR;
-	m_playerData = reverseUInt32(&mem[m_playerEntity + 0x2C]) - RAM_BASE_ADDR;
+	m_playerEntity = getUInt32(&mem[m_playerStatic + 0xB0], true) - RAM_BASE_ADDR;
+	m_playerData = getUInt32(&mem[m_playerEntity + 0x2C], true) - RAM_BASE_ADDR;
 }
 
 void Player::update(GameMem& mem){
 	locateAddreses(mem);
 
-	x   = reverseFloat(&mem[m_playerData + OFFSET_X]);
-	y   = reverseFloat(&mem[m_playerData + OFFSET_Y]);
-	vx  = reverseFloat(&mem[m_playerData + OFFSET_VX]);
-	vy  = reverseFloat(&mem[m_playerData + OFFSET_VY]);
-	dmg = reverseFloat(&mem[m_playerData + OFFSET_DMG]);
+	x   = getFloat(&mem[m_playerData + OFFSET_X], true);
+	y   = getFloat(&mem[m_playerData + OFFSET_Y], true);
+	vx  = getFloat(&mem[m_playerData + OFFSET_VX], true);
+	vy  = getFloat(&mem[m_playerData + OFFSET_VY], true);
+	dmg = getFloat(&mem[m_playerData + OFFSET_DMG], true);
 	stock = mem[m_playerStatic + OFFSET_STOCK];
 }
 
