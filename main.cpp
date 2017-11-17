@@ -6,8 +6,6 @@
  */
 #define _WIN32_WINNT 0x0501
 
-#include <windows.h>
-#include <psapi.h>
 #include <conio.h>
 
 #include <iostream>
@@ -19,6 +17,8 @@
 #include <functional>
 
 #include "tools.h"
+#include "trainer.h"
+
 #include "GameMem.h"
 #include "GameRegisters.h"
 #include "Player.h"
@@ -26,63 +26,7 @@
 using namespace std;
 
 const char* GAME_ID = "GALE01";
-
-vector<pair<size_t, void*>> getPages(HANDLE proc, size_t keysize = 0, string keyword = "", vector<size_t> keyaddr = vector<size_t>()){
-	vector<pair<size_t, void*>> ret;
-
-	vector<char> buffer;
-
-	MEMORY_BASIC_INFORMATION info;
-	for(void* p = 0; VirtualQueryEx(proc, p, &info, sizeof(info)) == sizeof(info); p += info.RegionSize){
-		if(keysize && info.RegionSize != keysize)continue;
-
-		unsigned i;
-		for(i = 0; i < keyaddr.size(); i++){
-			if((size_t)info.BaseAddress > keyaddr[i] || (size_t)info.BaseAddress + info.RegionSize <= keyaddr[i])break;
-		}if(i != keyaddr.size())continue;
-
-		if(!keyword.empty()){
-			buffer.resize(info.RegionSize);
-
-			size_t read;
-			ReadProcessMemory(proc, info.BaseAddress, buffer.data(), info.RegionSize, &read);
-
-			unsigned i;
-			for(i = 0; i < keyword.size(); i++) if(keyword[i] != buffer[i])break;
-			if(i != keyword.size())continue;
-		}
-
-
-		ret.push_back(make_pair(info.RegionSize, info.BaseAddress));
-	}
-
-	return ret;
-}
-
-vector<pair<unsigned long, string>> findProcess(){
-	vector<pair<unsigned long, string>> ret;
-
-	vector<unsigned long> buffer(100);
-	char strbuf[100];
-
-	unsigned long size;
-	do{
-		buffer.resize(buffer.size() + 100);
-		EnumProcesses(buffer.data(), buffer.size()*sizeof(unsigned long), &size);
-	}while(size/sizeof(unsigned long) == buffer.size());
-	buffer.resize(size/sizeof(unsigned long));
-
-	for(int i = 0; i < buffer.size(); i++){
-		HANDLE h = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, buffer[i]);
-
-		unsigned long strSize;
-		if(h && GetProcessImageFileNameA(h, strbuf, 100) && contains(strbuf, "dolphin")){
-			ret.push_back(make_pair(buffer[i], string(strbuf)));
-		}
-	}
-
-	return ret;
-}
+const size_t PC_ADDRESS = 0x7FF622DAC520;
 
 GameMem mem;
 GameRegisters reg;
@@ -123,7 +67,14 @@ void init(){
 	commands["display"] = [](istringstream& ss){
 		string type; ss >> type;
 		if(type == "player"){
-			int i; ss >> i;
+			int i;
+			if(!(ss >> i)){
+				cout << "USAGE: display player [player index]" << endl;
+				return 0;
+			}if(i < 1 || i > 4){
+				cout << "Invalid player index." << endl;
+				return 0;
+			}
 			while(true){
 				mem.update();
 				player[i - 1].update(mem);
@@ -155,6 +106,44 @@ void init(){
 					}
 
 					cout << "\r" << std::hex << reg.getPC() << std::dec;
+				}cout << endl;
+			}else if(regName == "GPR" || regName == "GP"){
+				int idx;
+				if(!(ss >> idx)){
+					cout << "USAGE: display register " << regName << " [register number]" << endl;
+					return 0;
+				}if(idx < 0 || idx > 31){
+					cout << "Invalid register index." << endl;
+					return 0;
+				}
+				while(true){
+					reg.update();
+
+					if(kbhit()){
+						char c = getch();
+						if(c == 'q')break;
+					}
+
+					cout << "\r" << std::hex << reg.getGPR(idx) << std::dec;
+				}cout << endl;
+			}else if(regName == "FPR" || regName == "FP"){
+				int idx;
+				if(!(ss >> idx)){
+					cout << "USAGE: display register " << regName << " [register number]" << endl;
+					return 0;
+				}if(idx < 0 || idx > 31){
+					cout << "Invalid register index." << endl;
+					return 0;
+				}
+				while(true){
+					reg.update();
+
+					if(kbhit()){
+						char c = getch();
+						if(c == 'q')break;
+					}
+
+					cout << "\r" << reg.getFPR(idx);
 				}cout << endl;
 			}else{
 				cout << "Unknown register." << endl;
@@ -285,10 +274,8 @@ int main(){
 
 	mem = GameMem(pages[0], target);
 
-	vector<size_t> keyaddr(1, 0x7FF622DAC520);//PC address
+	vector<size_t> keyaddr(1, PC_ADDRESS);
 	auto regPages = getPages(target, 0, "", keyaddr);
-
-	cout << regPages[0].second << endl;
 
 	reg = GameRegisters(regPages[0], target);
 
