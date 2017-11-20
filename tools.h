@@ -10,17 +10,17 @@
 
 #include <crtdefs.h>
 #include <tuple>
+#include <cstring>
 
-const size_t RAM_SIZE      = 0x2000000;
-const size_t RAM_BASE_ADDR = 0x80000000;
+//Big-endian to little endian conversion function
+template <typename T> T reverse(T t);
 
-//Memory functions (includes Big-Endian support)
-extern float getFloat(char* p, bool bigEndian);
-extern double getDouble(char* p, bool bigEndian);
-extern unsigned getUInt16(char* p, bool bigEndian);
-extern unsigned long getUInt32(char* p, bool bigEndian);
-extern unsigned long long getUInt64(char* p, bool bigEndian);
+//Memory helper function
+template <typename T> T get(char* p, bool bigEndian);
 
-extern bool contains(const char* str, const char* key);//basic string search
+//basic string search
+extern bool contains(const char* str, const char* key);
+
+#include "tools-imp.h"
 
 #endif /* TOOLS_H_ */
