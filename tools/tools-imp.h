@@ -17,7 +17,7 @@ T reverse(T t){
 	char* retBytes = (char*)&ret;
 
 	for(int i = 0; i < sizeof(T); i++){
-		retBytes[i] = inBytes[sizeof(T) - 1];
+		retBytes[i] = inBytes[sizeof(T) - i - 1];
 	}
 
 	return ret;

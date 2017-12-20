@@ -35,16 +35,16 @@ std::vector<std::pair<unsigned long, std::string>> enumerateProcesses(const char
 		unsigned long strSize;
 		if(h && GetProcessImageFileNameA(h, strbuf, 100) && contains(strbuf, keyword)){
 			ret.push_back(make_pair(buffer[i], string(strbuf)));
-		}
+		}CloseHandle(h);
 	}
 
 	return ret;
 }
 
-PageInfo::PageInfo(void* startAddr, void* endAddr): startAddr(startAddr), endAddr(endAddr){}
-PageInfo::PageInfo(void* startAddr, size_t size): startAddr(startAddr), endAddr(startAddr + size){}
+PageInfo::PageInfo(void* startAddr, void* endAddr): startAddr(startAddr), endAddr(endAddr) {}
+PageInfo::PageInfo(void* startAddr, size_t size): startAddr(startAddr), endAddr(startAddr + size) {}
 
-PageInfo::PageInfo(string range){
+PageInfo::PageInfo(string range) {
 	int b;
 	for(int i = 0; i < range.size(); i++)if(range[i] == '-'){
 		range[i] = 0;
@@ -57,22 +57,26 @@ PageInfo::PageInfo(string range){
 }
 
 Process::Process(unsigned long pid): pid(pid){
-#if (defined (_WIN32) || defined (_WIN64))
+#ifndef TRAINER_LINUX
 	proc = OpenProcess(PROCESS_ALL_ACCESS, true, pid);
 #endif
 }
 
 Process::~Process(){
-#if (defined (_WIN32) || defined (_WIN64))
+#ifndef TRAINER_LINUX
 	CloseHandle(proc);
 #endif
 }
 
 size_t Process::readBytes(void* addr, void* buffer, size_t size){
-	size_t read;
+	size_t r = 0;
 
-#if (defined (_WIN32) || defined (_WIN64))
-	ReadProcessMemory(proc, addr, buffer, size, &read);
+#ifndef TRAINER_LINUX
+	if(!ReadProcessMemory(proc, addr, buffer, size, &r)){
+		LOG << "Error while reading process memory: " << GetLastError() << '\n';
+		LOG << "Memory address: " << addr << '\n';
+		LOG << "Bytes read: " << r << "; Expected: " << size << '\n';
+	}
 #else
 	iovec local, remote;
 	local.base = buffer;
@@ -85,13 +89,13 @@ size_t Process::readBytes(void* addr, void* buffer, size_t size){
 	read = process_vm_readv(pid, &local, 1, &remote, 1, 0);
 #endif
 
-	return read;
+	return r;
 }
 
 size_t Process::writeBytes(void* addr, void* buffer, size_t size){
-	size_t written;
+	size_t written = 0;
 
-#if (defined (_WIN32) || defined (_WIN64))
+#ifndef TRAINER_LINUX
 	WriteProcessMemory(proc, addr, buffer, size, &written);
 #else
 	iovec local, remote;
@@ -111,20 +115,21 @@ size_t Process::writeBytes(void* addr, void* buffer, size_t size){
 std::vector<PageInfo> Process::getPageList(){
 	vector<PageInfo> ret;
 
-#if (defined (_WIN32) || defined (_WIN64))
+#ifndef TRAINER_LINUX
 	MEMORY_BASIC_INFORMATION info;
 	for(void* p = 0; VirtualQueryEx(proc, p, &info, sizeof(info)) == sizeof(info); p += info.RegionSize){
 		ret.emplace_back(info.BaseAddress, info.RegionSize);
 	}
 #else
 	char buf[64];
-	sprintf("/proc/%ld/maps", pid);
+	sprintf(buf, "/proc/%ld/maps", pid);
 	ifstream fin(buf);
 
+	string waste;
 	string range; fin >> range;
 	while(fin >> range){
 		ret.emplace_back(range);
-		string waste; getline(fin, waste);
+		getline(fin, waste);//horrible way to seek to the next line
 	}
 
 	fin.close();
@@ -133,28 +138,50 @@ std::vector<PageInfo> Process::getPageList(){
 	return ret;
 }
 
-std::vector<PageInfo> Process::queryPages(PageQuery* query){
+std::vector<PageInfo> Process::queryPages(const PageQuery& query){
 	vector<PageInfo> ret;
 
 	vector<PageInfo> pageInfo = getPageList();
-
-	string buffer(query->title.size(), 0);
+	string buffer(query.title.size(), 0);
 
 	for(int i = 0; i < pageInfo.size(); i++){
-		if(query->size > 0 && pageInfo[i].size() != query->size)continue;
+		if(query.size > 0 && pageInfo[i].size() != query.size)continue;
 
-		unsigned j;
-		for(j = 0; j < query->containedAddresses.size(); j++){
-			if((size_t)pageInfo[i].endAddr > query->containedAddresses[j] && (size_t)pageInfo[i].endAddr <= query->containedAddresses[j])break;
-		}if(j != query->containedAddresses.size())continue;
+		size_t j;
+		for(j = 0; j < query.containedAddresses.size(); j++){
+			if((size_t)pageInfo[i].startAddr > query.containedAddresses[j] || (size_t)pageInfo[i].endAddr <= query.containedAddresses[j])break;
+		}if(j != query.containedAddresses.size())continue;
 
-		if(!query->title.empty()){
-			size_t read = readBytes(pageInfo[i].startAddr, (void*)buffer.data(), query->title.size());
-			if(read < query->title.size() || query->title != buffer)continue;
+		if(!query.title.empty()){
+			size_t read = readBytes(pageInfo[i].startAddr, (void*)buffer.data(), query.title.size());
+			if(read < query.title.size() || query.title != buffer)continue;
 		}
 
 		ret.push_back(pageInfo[i]);
 	}
 
 	return ret;
+}
+
+PageInfo Process::queryFirstPage(const PageQuery& query){
+	vector<PageInfo> pageInfo = getPageList();
+	string buffer(query.title.size(), 0);
+
+	for(int i = 0; i < pageInfo.size(); i++){
+		if(query.size > 0 && pageInfo[i].size() != query.size)continue;
+
+		size_t j;
+		for(j = 0; j < query.containedAddresses.size(); j++){
+			if((size_t)pageInfo[i].startAddr > query.containedAddresses[j] || (size_t)pageInfo[i].endAddr <= query.containedAddresses[j])break;
+		}if(j != query.containedAddresses.size())continue;
+
+		if(!query.title.empty()){
+			size_t read = readBytes(pageInfo[i].startAddr, (void*)buffer.data(), query.title.size());
+			if(read < query.title.size() || query.title != buffer)continue;
+		}
+
+		return pageInfo[i];
+	}
+
+	throw runtime_error("Could not find requested memory page.");
 }

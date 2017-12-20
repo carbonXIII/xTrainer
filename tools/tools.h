@@ -11,6 +11,9 @@
 #include <crtdefs.h>
 #include <tuple>
 #include <cstring>
+#include <iostream>
+
+#include "log.h"//Basic logging
 
 //Big-endian to little endian conversion function
 template <typename T> T reverse(T t);

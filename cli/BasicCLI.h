@@ -13,6 +13,7 @@
 #include <string>
 #include <map>
 #include <functional>
+#include <sstream>
 #include <iostream>
 
 class BasicCLI: public CLI {
@@ -20,14 +21,14 @@ public:
 	BasicCLI(Dolphin* dolphin);
 
 protected:
-	virtual void display_cmd(std::istream& is);
-	virtual void set_cmd(std::istream& is);
-	virtual void snapshot_cmd(std::istream& is);
+	virtual int display_cmd(std::istringstream& is);
+	virtual int set_cmd(std::istringstream& is);
+	virtual int snapshot_cmd(std::istringstream& is);
 
 	virtual void processCommand(std::string buffer);
 
 private:
-	std::map<std::string, std::function<int(std::istream&)>> commands;
+	std::map<std::string, std::function<int(std::istringstream&)>> commands;
 };
 
 #endif /* BASICCLI_H_ */

@@ -10,17 +10,21 @@
 
 #include <vector>
 #include <string>
+#include <initializer_list>
 
-#if (defined (_WIN32) || defined (_WIN64))
-	#include <windows.h>
-#else
+#ifdef TRAINER_LINUX
 	#include <sys/uio.h>
+#else
+	#include <windows.h>
 #endif
 
 extern std::vector<std::pair<unsigned long, std::string>> enumerateProcesses(const char* keyword);
 
 struct PageQuery{
-	size_t size = -1;
+	PageQuery(): containedAddresses() {};
+	PageQuery(std::string title, size_t size = 0, std::initializer_list<size_t> addresses = {}): size(size), title(title), containedAddresses(addresses) {}
+
+	size_t size = 0;
 	std::string title;
 	std::vector<size_t> containedAddresses;
 };
@@ -41,18 +45,21 @@ struct Process{
 	size_t readBytes(void* addr, void* buffer, size_t size);
 	size_t writeBytes(void* addr, void* buffer, size_t size);
 
-	std::vector<PageInfo> queryPages(PageQuery* description);
+	std::vector<PageInfo> queryPages(const PageQuery& description);
+	PageInfo queryFirstPage(const PageQuery& description);
 
 	unsigned long getPID() const { return pid; };
 
 	~Process();
+
+	std::vector<PageInfo> getPageList();
 
 private:
 	unsigned long pid;
 
 	void* proc;//only used on windows
 
-	std::vector<PageInfo> getPageList();
+
 };
 
 #endif /* TRAINER_H_ */

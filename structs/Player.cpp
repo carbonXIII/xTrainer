@@ -5,11 +5,10 @@
  *      Author: shado
  */
 #include "Player.h"
+
 #include "RAMPage.h"
 
-Player::Player(RAMPage* parent, size_t staticPlayer): parent(parent), m_playerStatic(staticPlayer){
-	update();
-}
+Player::Player(RAMPage* parent, size_t staticPlayer): parent(parent), m_playerStatic(staticPlayer){ }
 
 void Player::locateAddreses(){
 	m_playerEntity = get<uint32_t>(&(*parent)[m_playerStatic + 0xB0], true) - RAM_BASE_ADDR;
@@ -17,6 +16,10 @@ void Player::locateAddreses(){
 }
 
 void Player::update(){
+	stock = (*parent)[m_playerStatic + OFFSET_STOCK];
+	inGame = get<int32_t>(&(*parent)[m_playerStatic + OFFSET_INGAME],true) > 0;
+	if(!inGame)return;
+
 	locateAddreses();
 
 	x   = get<float>(&(*parent)[m_playerData + OFFSET_X], true);
@@ -24,8 +27,6 @@ void Player::update(){
 	vx  = get<float>(&(*parent)[m_playerData + OFFSET_VX], true);
 	vy  = get<float>(&(*parent)[m_playerData + OFFSET_VY], true);
 	dmg = get<float>(&(*parent)[m_playerData + OFFSET_DMG], true);
-	stock = (*parent)[m_playerStatic + OFFSET_STOCK];
-	inGame = (*parent)[m_playerStatic + OFFSET_INGAME] > 0;
 }
 
 size_t Player::getStaticLocation() const { return m_playerStatic; }

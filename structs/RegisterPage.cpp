@@ -5,22 +5,15 @@
  *      Author: shado
  */
 
-#include "RegisterPage.h"
-#include "tools.h"
+#include "../structs/RegisterPage.h"
+
+#include "../tools/tools.h"
 #include <exception>
+#include <iostream>
 
 using namespace std;
 
-RegisterPage::RegisterPage(Process* process){
-	PageQuery q;
-	q.containedAddresses.push_back(PC_ADDRESS);
-	auto pages = process->queryPages(&q);
-
-	if(!pages.size())
-		throw runtime_error("Could not find register page.");
-
-	Memory(pages[0], process);
-}
+RegisterPage::RegisterPage(Process* proc): Memory(proc->queryFirstPage(PageQuery("",0,{PC_ADDRESS})),proc){ }
 
 unsigned long RegisterPage::getPC() const{
 	return get<uint32_t>(data + OFFSET_PC, false);

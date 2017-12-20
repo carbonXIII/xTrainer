@@ -18,5 +18,3 @@ bool contains(const char* str, const char* key){
 		}if(j == m)return true;
 	}return false;
 }
-
-

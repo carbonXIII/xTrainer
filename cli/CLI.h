@@ -11,11 +11,11 @@
 #include <iostream>
 #include <string>
 
-#include "RAMPage.h"
-#include "RegisterPage.h"
+#include "../structs/RAMPage.h"
+#include "../structs/RegisterPage.h"
 
 struct Dolphin{
-	Dolphin(Process* p);
+	Dolphin(Process* p): ram(p), reg(p){}
 
 	RAMPage ram;
 	RegisterPage reg;
@@ -39,12 +39,13 @@ public:
 	virtual ~CLI() {};
 
 	State getState() const { return state; }
+	int exit() { state = STOP; return 0; }
 
 protected:
 	virtual void processCommand(std::string command) = 0;
 
 	Dolphin* m_dolphin;
-	enum State { RUN, STOP } state;
+	State state;
 };
 
 #endif /* CLI_H_ */

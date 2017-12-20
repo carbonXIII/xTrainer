@@ -13,7 +13,7 @@ Memory::Memory(PageInfo info, Process* proc): n(info.size()), base_addr(info.sta
 	update();
 }
 
-int Memory::getSize() const{
+size_t Memory::getSize() const{
 	return n;
 }
 

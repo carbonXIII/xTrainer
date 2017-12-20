@@ -8,7 +8,7 @@
 #ifndef PLAYER_H_
 #define PLAYER_H_
 
-#include "tools.h"
+#include "../tools/tools.h"
 #include <iostream>
 
 class RAMPage;

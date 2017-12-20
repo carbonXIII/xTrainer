@@ -8,9 +8,9 @@
 #ifndef REGISTERPAGE_H_
 #define REGISTERPAGE_H_
 
-#include "Memory.h"
+#include "../tools/Memory.h"
 
-const size_t PC_ADDRESS = 0x7FF622DAC520;
+const size_t PC_ADDRESS = 0x7FF7BDF4C520;
 
 class RegisterPage: public Memory{
 public:

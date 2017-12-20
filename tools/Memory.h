@@ -8,14 +8,15 @@
 #ifndef MEMORY_H_
 #define MEMORY_H_
 
-#include "trainer.h"
+#include "../tools/trainer.h"
+#include "../tools/log.h"
 
 class Memory{
 public:
 	Memory();
 	Memory(PageInfo info, Process* proc);
 
-	int getSize() const;
+	size_t getSize() const;
 	Process* getProcess() const;
 
 	char& operator [] (int idx);
@@ -30,9 +31,11 @@ public:
 		writeString(offset, (char*)&buffer, sizeof(char));
 	}
 
+	~Memory() { delete [] data; }
+
 protected:
 	char* data = nullptr;
-	int n = 0;
+	size_t n = 0;
 
 	void* base_addr = nullptr;
 	Process* m_proc = nullptr;
