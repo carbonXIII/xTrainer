@@ -20,13 +20,20 @@
 
 extern std::vector<std::pair<unsigned long, std::string>> enumerateProcesses(const char* keyword);
 
+struct Address{
+	bool relative = false;
+	size_t value;
+
+	Address(bool relative, size_t value): relative(relative), value(value) {}
+};
+
 struct PageQuery{
 	PageQuery(): containedAddresses() {};
-	PageQuery(std::string title, size_t size = 0, std::initializer_list<size_t> addresses = {}): size(size), title(title), containedAddresses(addresses) {}
+	PageQuery(std::string title, size_t size = 0, std::initializer_list<Address> addresses = {}): size(size), title(title), containedAddresses(addresses) {}
 
 	size_t size = 0;
 	std::string title;
-	std::vector<size_t> containedAddresses;
+	std::vector<Address> containedAddresses;
 };
 
 struct PageInfo{
@@ -40,7 +47,7 @@ struct PageInfo{
 };
 
 struct Process{
-	Process(unsigned long pid);
+	Process(unsigned long pid, std::string filename);
 
 	size_t readBytes(void* addr, void* buffer, size_t size);
 	size_t writeBytes(void* addr, void* buffer, size_t size);
@@ -55,7 +62,10 @@ struct Process{
 	std::vector<PageInfo> getPageList();
 
 private:
+	void resolveBaseAddress(std::string filename);
+
 	unsigned long pid;
+	void* baseAddress;
 
 	void* proc;//only used on windows
 

@@ -10,7 +10,7 @@
 
 #include "../tools/Memory.h"
 
-const size_t PC_ADDRESS = 0x7FF7BDF4C520;
+const Address PC_ADDRESS = {true, 0x12BC520};
 
 class RegisterPage: public Memory{
 public:

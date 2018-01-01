@@ -1,21 +1,37 @@
 cmake_minimum_required(VERSION 3.0)
 project (DolphinTrainer)
 
-set(SOURCE_DIRS					/.
-								/cli
-								/structs
-								/tools	)
+SET(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_CXX_USE_RESPONSE_FILE_FOR_INCLUDES 0)
 
-foreach (dir ${SOURCE_DIRS})
+set(SOURCE_DIRS					/structs
+								/tools	)
+						
+set(BUILD_GUI TRUE CACHE BOOL "Build the GUI version?")
+
+foreach(dir ${SOURCE_DIRS})
 	aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}${dir} sources)
-endforeach (dir ${SOURCE_DIRS})
-message("Files: ${sources}")
+endforeach()
+
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/cli CLI_SOURCES)
 
 if (!WIN32)
 	add_definitions(-DTRAINER_LINUX)
-endif (!WIN32)
+endif()
 
-add_executable (DolphinTrainer ${sources})
+add_executable (DolphinTrainer ${sources} ${CLI_SOURCES})
 target_link_libraries (DolphinTrainer psapi)
+	
+if(${BUILD_GUI})
+	aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/gui GUI_SOURCES)
+	add_executable(DolphinTrainerGUI ${sources} ${GUI_SOURCES})
 
-list( APPEND CMAKE_CXX_FLAGS "--std=c++11 ${CMAKE_CXX_FLAGS}")
+	find_package(wxWidgets REQUIRED core base)
+	include_directories(${wxWidgets_INCLUDE_DIRS})
+	
+	target_link_libraries(DolphinTrainerGUI ${wxWidgets_LIBRARIES})
+	target_link_libraries(DolphinTrainerGUI psapi)	
+endif()
+
+list(APPEND CMAKE_CXX_FLAGS "--std=c++11")
+#list(APPEND CMAKE_EXE_LINKER_FLAGS "-Wl,--subsystem,windows -mwindows")

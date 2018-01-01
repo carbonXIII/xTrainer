@@ -11,15 +11,7 @@
 #include <iostream>
 #include <string>
 
-#include "../structs/RAMPage.h"
-#include "../structs/RegisterPage.h"
-
-struct Dolphin{
-	Dolphin(Process* p): ram(p), reg(p){}
-
-	RAMPage ram;
-	RegisterPage reg;
-};
+#include "../structs/Dolphin.h"
 
 enum State { RUN, STOP };
 
