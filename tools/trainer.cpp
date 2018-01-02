@@ -4,11 +4,12 @@
  *  Created on: Nov 17, 2017
  *      Author: shado
  */
-
+#define _WIN32_WINNT 0x0600
 #include "trainer.h"
 #include "tools.h"
 
 #include <windows.h>
+#include <winbase.h>
 #include <psapi.h>
 #include <conio.h>
 #include <fstream>
@@ -32,8 +33,8 @@ std::vector<std::pair<unsigned long, std::string>> enumerateProcesses(const char
 	for(int i = 0; i < buffer.size(); i++){
 		HANDLE h = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, buffer[i]);
 
-		unsigned long strSize;
-		if(h && GetProcessImageFileNameA(h, strbuf, 100) && contains(strbuf, keyword)){
+		unsigned long strSize = 100;
+		if(h && QueryFullProcessImageNameA(h, 0, strbuf, &strSize) && contains(strbuf, keyword)){
 			ret.push_back(make_pair(buffer[i], string(strbuf)));
 		}CloseHandle(h);
 	}
@@ -56,16 +57,25 @@ PageInfo::PageInfo(string range) {
 	endAddr   = (void*)strtoull(range.c_str() + b,0,16);
 }
 
-Process::Process(unsigned long pid): pid(pid){
+Process::Process(unsigned long pid, string filename): pid(pid){
 #ifndef TRAINER_LINUX
 	proc = OpenProcess(PROCESS_ALL_ACCESS, true, pid);
 #endif
+	resolveBaseAddress(filename);
 }
 
 Process::~Process(){
 #ifndef TRAINER_LINUX
 	CloseHandle(proc);
 #endif
+}
+
+void Process::resolveBaseAddress(string filename){
+	string buf(100,0);
+	ifstream fin(filename);
+	fin.read((char*)buf.data(), 100);
+
+	baseAddress = queryFirstPage(PageQuery(buf,0)).startAddr;
 }
 
 size_t Process::readBytes(void* addr, void* buffer, size_t size){
@@ -149,7 +159,9 @@ std::vector<PageInfo> Process::queryPages(const PageQuery& query){
 
 		size_t j;
 		for(j = 0; j < query.containedAddresses.size(); j++){
-			if((size_t)pageInfo[i].startAddr > query.containedAddresses[j] || (size_t)pageInfo[i].endAddr <= query.containedAddresses[j])break;
+			size_t addr = query.containedAddresses[j].value;
+			if(query.containedAddresses[j].relative)addr += (size_t)baseAddress;
+			if((size_t)pageInfo[i].startAddr > addr || (size_t)pageInfo[i].endAddr <= addr)break;
 		}if(j != query.containedAddresses.size())continue;
 
 		if(!query.title.empty()){
@@ -172,7 +184,9 @@ PageInfo Process::queryFirstPage(const PageQuery& query){
 
 		size_t j;
 		for(j = 0; j < query.containedAddresses.size(); j++){
-			if((size_t)pageInfo[i].startAddr > query.containedAddresses[j] || (size_t)pageInfo[i].endAddr <= query.containedAddresses[j])break;
+			size_t addr = query.containedAddresses[j].value;
+			if(query.containedAddresses[j].relative)addr += (size_t)baseAddress;
+			if((size_t)pageInfo[i].startAddr > addr || (size_t)pageInfo[i].endAddr <= addr)break;
 		}if(j != query.containedAddresses.size())continue;
 
 		if(!query.title.empty()){
