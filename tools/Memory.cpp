@@ -37,3 +37,9 @@ void Memory::snapshot(char* buffer, size_t start, size_t size){
 void Memory::writeString(size_t offset, char* str, size_t n){
 	m_proc->writeBytes(base_addr + offset, (void*)str, n);
 }
+
+void Memory::readString(size_t offset, char* str, size_t n){
+	for(size_t i = 0; i < n; i++){
+		str[i] = (*this)[i+offset];
+	}
+}

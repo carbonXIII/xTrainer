@@ -27,6 +27,7 @@ public:
 
 private:
 	std::vector<Player> players;
+
 	PageQuery _q;
 };
 

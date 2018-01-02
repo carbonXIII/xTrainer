@@ -24,6 +24,7 @@ public:
 	void update();
 	void snapshot(char* buffer, size_t start = 0, size_t size = 0);
 
+	void readString(size_t offset, char* str, size_t n);
 	void writeString(size_t offset, char* str, size_t n);
 	template <typename T>
 	void write(int offset, T t){
