@@ -6,6 +6,7 @@
  */
 
 #include "tools.h"
+#include <fstream>
 
 bool contains(const char* str, const char* key){
 	int n = strlen(str);
@@ -17,4 +18,9 @@ bool contains(const char* str, const char* key){
 			if(tolower(str[i+j]) != tolower(key[j]))break;
 		}if(j == m)return true;
 	}return false;
+}
+
+bool fileExists(const char* filename){
+	std::ifstream fin(filename);
+	return fin.good();
 }

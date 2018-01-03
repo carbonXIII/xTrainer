@@ -12,15 +12,19 @@ Player::Player(RAMPage* parent, size_t staticPlayer): parent(parent), m_playerSt
 
 void Player::locateAddreses(){
 	m_playerEntity = get<uint32_t>(&(*parent)[m_playerStatic + 0xB0], true) - RAM_BASE_ADDR;
-	m_playerData = get<uint32_t>(&(*parent)[m_playerEntity + 0x2C], true) - RAM_BASE_ADDR;
+	if(!parent->inRange(m_playerEntity)){
+		inGame = false;
+	}else{
+		m_playerData = get<uint32_t>(&(*parent)[m_playerEntity + 0x2C], true) - RAM_BASE_ADDR;
+		if(!parent->inRange(m_playerData))inGame = false;
+	}
 }
 
 void Player::update(){
 	stock = (*parent)[m_playerStatic + OFFSET_STOCK];
 	inGame = get<int32_t>(&(*parent)[m_playerStatic + OFFSET_INGAME],true) > 0;
-	if(!inGame)return;
-
 	locateAddreses();
+	if(!inGame)return;
 
 	x   = get<float>(&(*parent)[m_playerData + OFFSET_X], true);
 	y   = get<float>(&(*parent)[m_playerData + OFFSET_Y], true);

@@ -32,6 +32,9 @@ public:
 		writeString(offset, (char*)&buffer, sizeof(char));
 	}
 
+	bool inRange(size_t addr) const;
+	bool inRange(size_t addr, size_t n) const;
+
 	~Memory() { delete [] data; }
 
 protected:

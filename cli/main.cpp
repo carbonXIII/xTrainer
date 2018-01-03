@@ -17,6 +17,7 @@
 
 #include "../tools/tools.h"
 #include "../tools/trainer.h"
+#include "../tools/csv.h"
 
 #include "../cli/BasicCLI.h"
 
@@ -85,6 +86,18 @@ int main(int argc, char** argv){
 		system("PAUSE");
 		return -1;
 	}
+
+	if(fileExists("stages.csv")){
+		SimpleCSV csv("stages.csv",false);
+		size_t headers[] = {0,1};
+		csv.setReadHeaders(headers,2);
+		int32_t id; string name;
+		while(!csv.eof()){
+			csv.nextLine(id,name);
+			dolphin->ram.getStage().addStageName(id,name);
+		}
+	}
+
 	BasicCLI cli(dolphin);
 
 	while(cli.getState() == State::RUN){

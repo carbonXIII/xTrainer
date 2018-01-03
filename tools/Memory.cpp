@@ -43,3 +43,11 @@ void Memory::readString(size_t offset, char* str, size_t n){
 		str[i] = (*this)[i+offset];
 	}
 }
+
+bool Memory::inRange(size_t addr) const{
+	return addr < n;
+}
+
+bool Memory::inRange(size_t addr, size_t n) const{
+	return (addr + n) < this->n;
+}

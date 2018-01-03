@@ -22,7 +22,7 @@ const char* digits = "0123456789ABCDEF";
 
 void printHex(const char* str, int n){
 	for(int i = 0; i < n; i++){
-		cout << digits[str[i] & 0xF] << digits[str[i] & 0xF0];
+		cout << digits[(str[i] & 0xF0) >> 4] << digits[str[i] & 0x0F];
 		cout << " ";
 	}
 }
@@ -48,6 +48,18 @@ int BasicCLI::display_cmd(std::istringstream& ss){
 			}
 
 			cout << "Player " << i << ":" << m_dolphin->ram.getPlayer(i - 1) << "                            \r";//actually a terrible way to rewrite lines
+		}
+		cout << endl;
+	}else if(type == "stage"){
+		while(true){
+			m_dolphin->ram.update();
+
+			if(kbhit()){
+				char c = getch();
+				if(c == 'q')break;
+			}
+
+			cout << m_dolphin->ram.getStage() << "                            \r";//actually a terrible way to rewrite lines
 		}
 		cout << endl;
 	}else if(type == "register"){
@@ -112,10 +124,6 @@ int BasicCLI::display_cmd(std::istringstream& ss){
 			goto end;
 		}
 
-		bool hex;
-		string s; ss >> s;
-		if(s == "HEX")
-
 		if(addr < RAM_BASE_ADDR || addr + n >= RAM_BASE_ADDR + m_dolphin->ram.getSize()){
 			cout << "Invalid address range." << endl;
 			goto end;
@@ -133,17 +141,13 @@ int BasicCLI::display_cmd(std::istringstream& ss){
 			m_dolphin->ram.readString(addr - RAM_BASE_ADDR,str,n);
 			for(int i = 0; i < n; i++)cout << str[i];
 			cout << "\r";
-		}
+		}cout << endl;
 	}else if(type == "hexstring"){
 		size_t addr, n;
 		if(!(ss >> addr) || !(ss >> n)){
 			cout << "USAGE: display hexstring [ADDRESS] [LENGTH]" << endl;
 			goto end;
 		}
-
-		bool hex;
-		string s; ss >> s;
-		if(s == "HEX")
 
 		if(addr < RAM_BASE_ADDR || addr + n >= RAM_BASE_ADDR + m_dolphin->ram.getSize()){
 			cout << "Invalid address range." << endl;
@@ -162,7 +166,7 @@ int BasicCLI::display_cmd(std::istringstream& ss){
 			m_dolphin->ram.readString(addr - RAM_BASE_ADDR,str,n);
 			printHex(str,n);
 			cout << "\r";
-		}
+		}cout << endl;
 	}else if(type == "int"){
 		size_t addr;
 		if(!(ss >> addr)){
@@ -184,7 +188,29 @@ int BasicCLI::display_cmd(std::istringstream& ss){
 			}
 
 			cout << get<int16_t>(&m_dolphin->ram[addr - RAM_BASE_ADDR],true) << "                 \r";
+		}cout << endl;
+	}else if(type == "long"){
+		size_t addr;
+		if(!(ss >> addr)){
+			cout << "USAGE: display int [ADDRESS]" << endl;
+			goto end;
 		}
+
+		if(addr < RAM_BASE_ADDR || addr + sizeof(int32_t) >= RAM_BASE_ADDR + m_dolphin->ram.getSize()){
+			cout << "Invalid address range." << endl;
+			goto end;
+		}
+
+		while(true){
+			m_dolphin->ram.update();
+
+			if(kbhit()){
+				char c = getch();
+				if(c == 'q')break;
+			}
+
+			cout << get<int32_t>(&m_dolphin->ram[addr - RAM_BASE_ADDR],true) << "                 \r";
+		}cout << endl;
 	}else if(type == "float"){
 		size_t addr;
 		if(!(ss >> addr)){
@@ -206,7 +232,7 @@ int BasicCLI::display_cmd(std::istringstream& ss){
 			}
 
 			cout << get<float>(&m_dolphin->ram[addr - RAM_BASE_ADDR],true) << "                 \r";
-		}
+		}cout << endl;
 	}
 	else{
 		cout << "Unknown entity." << endl;

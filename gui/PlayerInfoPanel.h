@@ -83,9 +83,6 @@ public:
 		textCtrlData.dmg = m_player->getDmg();
 		textCtrlData.stockCount = m_player->getStock();
 
-		wxStaticText* t;
-		t->upda
-
 		Enable(m_player->isInGame());
 	}
 
