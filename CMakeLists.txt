@@ -21,7 +21,7 @@ add_library (xTrainer ${sources})
 
 install(TARGETS xTrainer DESTINATION lib)
 foreach(dir ${SOURCE_DIRS})
-	install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}${dir} DESTINATION include/xTrainer/${dir})
+	install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}${dir} DESTINATION include/xTrainer/${dir} FILES_MATCHING PATTERN "*.h")
 endforeach()
 
 list(APPEND CMAKE_CXX_FLAGS "--std=c++11")
