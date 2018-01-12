@@ -8,6 +8,8 @@
 #ifndef TRAINER_H_
 #define TRAINER_H_
 
+#define _WIN32_WINNT 0x0600
+
 #include <vector>
 #include <string>
 #include <initializer_list>

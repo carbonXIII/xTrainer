@@ -4,9 +4,8 @@
  *  Created on: Nov 17, 2017
  *      Author: shado
  */
-#define _WIN32_WINNT 0x0600
 #include "trainer.h"
-#include "tools.h"
+#include "../tools/tools.h"
 
 #include <windows.h>
 #include <winbase.h>
