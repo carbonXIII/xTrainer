@@ -23,7 +23,7 @@ foreach(dir ${SOURCE_DIRS})
 	install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}${dir} DESTINATION include/xTrainer/${dir} FILES_MATCHING PATTERN "*.h")
 endforeach()
 
-install(TARGETS xTrainer.h DESTINATION include/xTrainer)
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/xTrainer.h DESTINATION include/xTrainer)
 
 list(APPEND CMAKE_CXX_FLAGS "--std=c++11")
 #list(APPEND CMAKE_EXE_LINKER_FLAGS "-Wl,--subsystem,windows -mwindows")
