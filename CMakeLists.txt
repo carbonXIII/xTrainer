@@ -20,7 +20,7 @@ add_library (xTrainer ${sources})
 
 install(TARGETS xTrainer DESTINATION lib)
 foreach(dir ${SOURCE_DIRS})
-	install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}${dir} DESTINATION include/xTrainer/${dir} FILES_MATCHING PATTERN "*.h")
+	install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}${dir} DESTINATION include/xTrainer FILES_MATCHING PATTERN "*.h")
 endforeach()
 
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/xTrainer.h DESTINATION include/xTrainer)
