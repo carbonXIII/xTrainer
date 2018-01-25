@@ -6,9 +6,10 @@
  */
 
 #include "Module.h"
-#include "Memory.h"
+#include "MemoryManager.h"
 
 #include <unordered_set>
+#include <memory>
 
 void reverse(Size s, void* in, void* out){
 	int n = (int)s;
@@ -20,7 +21,7 @@ void reverse(Size s, void* in, void* out){
 
 Conversion::Conversion(void (*from) (Size,void*,void*), void (*to) (Size,void*,void*)): from(from), to(to) {}
 
-Property::Property(const char* name, Property::Address addr, Size s, int typeFlags = 0, const Conversion& converter):
+Property::Property(const char* name, Property::Address addr, Size s, int typeFlags, const Conversion& converter):
 	isFP(typeFlags & FLOATING_POINT), isSgned(typeFlags & SIGNED),
 	addr(addr), converter(converter), s(s), name(name)
 {
@@ -109,13 +110,14 @@ void Property::write(){
 
 void Property::update(){
 	if(parent == 0)return;
-	char* val = parent->read(this);
-	LOG << (void*)val << '\n';
+	char* val = new char[s];
+	parent->read(this,val);
 	if(val == 0)return;
 
 	if(converter.from != nullptr){
 		char* val2 = new char[s];
 		converter(s,val,val2,1);
+		delete [] val;
 		val = val2;
 	}
 
@@ -182,20 +184,13 @@ void Property::update(){
 			}
 		}
 	}
+
+	delete [] val;
 }
 
-void Module::update(){
-	std::vector<Property*> reorder;
-	for(auto it = props.begin(); it != props.end(); it++)reorder.push_back(it->second);
-
-	std::unordered_set<Property*> complete;
-	for(size_t i = 0; i < reorder.size(); i++){
-		if(reorder[i]->dependency() == 0 || complete.count(reorder[i]->dependency())){
-			reorder[i]->update();
-			complete.insert(reorder[i]);
-		}else{
-			reorder.push_back(reorder[i]);
-		}
+void Module::getProperties(std::insert_iterator<std::set<Property*>> iter){
+	for(auto it = props.begin(); it != props.end(); it++){
+		iter = it->second;
 	}
 }
 
@@ -204,12 +199,12 @@ void Module::attachProperty(const char* name, Property* prop){
 }
 
 void Module::write(Property* prop, char* str){
-	parent->writeString(prop->getAddr(), str, prop->getSize());
+	parent->write(prop->getAddr(), str, prop->getSize());
 }
 
-char* Module::read(Property* prop){
-	return (*parent)[prop->getAddr()];
+void Module::read(Property* prop, char* str){
+	parent->read(prop->getAddr(), str, prop->getSize());
 }
 
-Module::Module(Memory* parent): parent(parent) {}
+Module::Module(MemoryManager* parent): parent(parent) {}
 

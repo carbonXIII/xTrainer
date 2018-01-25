@@ -8,7 +8,9 @@
 #ifndef XTRAINER_H_
 #define XTRAINER_H_
 
-#include "trainer/trainer.h"
+#include <trainer/MemoryManager.h>
 #include "tools/tools.h"
+
+#include "trainer/trainer.h"
 
 #endif /* XTRAINER_H_ */

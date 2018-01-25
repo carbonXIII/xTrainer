@@ -1,9 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 project (xTrainer)
 
-SET(CMAKE_VERBOSE_MAKEFILE ON)
-set(CMAKE_CXX_USE_RESPONSE_FILE_FOR_INCLUDES 0)
-
 set(SOURCE_DIRS					/trainer
 								/tools )
 						
@@ -25,5 +22,12 @@ endforeach()
 
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/xTrainer.h DESTINATION include/xTrainer)
 
-list(APPEND CMAKE_CXX_FLAGS "--std=c++11")
+set(BUILD_SAMPLES TRUE CACHE BOOL "Build sample programs")
+
+if(${BUILD_SAMPLES})
+	add_subdirectory(samples samples)
+endif()
+
+
+list(APPEND CMAKE_CXX_FLAGS "--std=c++11 -g")
 #list(APPEND CMAKE_EXE_LINKER_FLAGS "-Wl,--subsystem,windows -mwindows")

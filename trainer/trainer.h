@@ -57,7 +57,8 @@ struct Process{
 	std::vector<PageInfo> queryPages(const PageQuery& description);
 	PageInfo queryFirstPage(const PageQuery& description);
 
-	unsigned long getPID() const { return pid; };
+	unsigned long getPID() const { return pid; }
+	void* getBaseAddress() const { return baseAddress; }
 
 	~Process();
 
@@ -68,10 +69,7 @@ private:
 
 	unsigned long pid;
 	void* baseAddress;
-
 	void* proc;//only used on windows
-
-
 };
 
 #endif /* TRAINER_H_ */

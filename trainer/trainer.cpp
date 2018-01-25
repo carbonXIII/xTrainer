@@ -33,7 +33,7 @@ std::vector<std::pair<unsigned long, std::string>> enumerateProcesses(const char
 		HANDLE h = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, buffer[i]);
 
 		unsigned long strSize = 100;
-		if(h && QueryFullProcessImageNameA(h, 0, strbuf, &strSize) && contains(strbuf, keyword)){
+		if(h && QueryFullProcessImageNameA(h, 0, strbuf, &strSize) && string(strbuf).find(string(keyword)) != string::npos){
 			ret.push_back(make_pair(buffer[i], string(strbuf)));
 		}CloseHandle(h);
 	}
@@ -69,12 +69,23 @@ Process::~Process(){
 #endif
 }
 
-void Process::resolveBaseAddress(string filename){
-	string buf(100,0);
-	ifstream fin(filename);
-	fin.read((char*)buf.data(), 100);
+void Process::resolveBaseAddress(string programName){
+    HMODULE hMods[1024];
+    DWORD size;
 
-	baseAddress = queryFirstPage(PageQuery(buf,0)).startAddr;
+    if (EnumProcessModules(proc, hMods, 1024*sizeof(HMODULE), &size)){
+        LOG << "Module count: " <<  size / sizeof(HMODULE) << '\n';
+        for (unsigned i = 0; i < (size / sizeof(HMODULE)); i++){
+            char buf[MAX_PATH];
+            if (GetModuleFileNameEx(proc, hMods[i], buf, MAX_PATH)){
+                if (string(buf).find(string(programName)) != string::npos){
+                    baseAddress = hMods[i];
+                    return;
+                }
+            }
+        }
+    }
+	baseAddress = nullptr;
 }
 
 size_t Process::readBytes(void* addr, void* buffer, size_t size){

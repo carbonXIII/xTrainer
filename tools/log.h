@@ -39,7 +39,7 @@ struct Logger{
 
 private:
 	std::ofstream logFile;
-	bool _useStdErr = true;
+	bool _useStdErr = false;
 };
 
 extern Logger default_logger;

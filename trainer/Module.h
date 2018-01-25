@@ -11,6 +11,7 @@
 #include "../tools/tools.h"
 
 #include <map>
+#include <set>
 
 enum class Size {
 	_8BIT = 1,
@@ -25,6 +26,8 @@ enum : int{
 };
 
 extern void reverse(Size s, void* in, void* out);
+
+//TODO: add support for string properties
 
 struct Conversion{
 	void (*from) (Size,void*,void*) = nullptr;
@@ -50,7 +53,7 @@ struct Property{
 
 friend class Module;
 	Property(): converter(NULL_CONVERTER) {}
-	Property(const char* name, Property::Address addr, Size s, int typeFlags, const Conversion& converter = NULL_CONVERTER);
+	Property(const char* name, Property::Address addr, Size s, int typeFlags = 0, const Conversion& converter = NULL_CONVERTER);
 	void init(Module* parent);
 
 	bool isFloatingPoint() const;
@@ -81,7 +84,6 @@ friend class Module;
 		return T(isFP ? data.fpValue : data.intValue);
 	}
 
-protected:
 	void update();
 
 private:
@@ -104,25 +106,25 @@ private:
 	Conversion converter;
 };
 
-class Memory;
+class MemoryManager;
 class Module {
 friend class Memory;
 friend struct Property;
 public:
+	Module() {};
+
 	void write(Property* prop, char* str);
-	char* read(Property* prop);
+	void read(Property* prop, char* str);
 
 	Property& operator[] (std::string name){
 		return *props[name];
 	}
 
 	virtual void init() {};
-	void update();
-
-	Module() {};
+	void getProperties(std::insert_iterator<std::set<Property*>> it);
 
 protected:
-	Module(Memory* parent);
+	Module(MemoryManager* parent);
 
 	void attachProperty(const char* name, Property* prop);
 
@@ -131,7 +133,7 @@ protected:
 	virtual ~Module() {};
 
 private:
-	Memory* parent = 0;
+	MemoryManager* parent = 0;
 };
 
 #endif /* TRAINER_MODULE_H_ */

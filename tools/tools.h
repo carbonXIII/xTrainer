@@ -22,9 +22,6 @@ template <typename T> T reverse(T t);
 //Memory helper function
 template <typename T> T get(char* p, bool bigEndian);
 
-//basic string search
-extern bool contains(const char* str, const char* key);
-
 extern bool fileExists(const char* filename);
 
 template <typename T> void convert(std::string s, T& out);
