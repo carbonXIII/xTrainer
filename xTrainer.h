@@ -2,7 +2,7 @@
  * xTrainer.hpp
  *
  *  Created on: Jan 12, 2018
- *      Author: shado
+ *      Author: Jordan Richards
  */
 
 #ifndef XTRAINER_H_
