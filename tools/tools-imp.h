@@ -2,7 +2,7 @@
  * tools.cpp
  *
  *  Created on: Nov 7, 2017
- *      Author: shado
+ *      Author: Jordan Richards
  */
 #ifndef TOOLS_IMP_H_
 #define TOOLS_IMP_H_

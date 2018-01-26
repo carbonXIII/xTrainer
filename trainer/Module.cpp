@@ -2,7 +2,7 @@
  * Module.cpp
  *
  *  Created on: Jan 5, 2018
- *      Author: shado
+ *      Author: Jordan Richards
  */
 
 #include "Module.h"

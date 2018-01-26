@@ -2,7 +2,7 @@
  * tools.h
  *
  *  Created on: Nov 7, 2017
- *      Author: shado
+ *      Author: Jordan Richards
  */
 
 #ifndef TOOLS_H_

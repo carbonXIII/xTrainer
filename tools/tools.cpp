@@ -2,7 +2,7 @@
  * tools.cpp
  *
  *  Created on: Nov 20, 2017
- *      Author: shado
+ *      Author: Jordan Richards
  */
 
 #include "tools.h"

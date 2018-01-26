@@ -2,7 +2,7 @@
  * log.h
  *
  *  Created on: Dec 18, 2017
- *      Author: shado
+ *      Author: Jordan Richards
  */
 
 #ifndef TOOLS_LOG_H_

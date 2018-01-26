@@ -2,7 +2,7 @@
  * trainer.h
  *
  *  Created on: Nov 17, 2017
- *      Author: shado
+ *      Author: Jordan Richards
  */
 
 #ifndef TRAINER_H_

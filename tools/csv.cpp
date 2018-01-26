@@ -2,7 +2,7 @@
  * csv.cpp
  *
  *  Created on: Jan 2, 2018
- *      Author: shado
+ *      Author: Jordan Richards
  */
 #include "csv.h"
 #include "tools.h"

@@ -2,7 +2,7 @@
  * Module.h
  *
  *  Created on: Jan 5, 2018
- *      Author: shado
+ *      Author: Jordan Richards
  */
 
 #ifndef TRAINER_MODULE_H_

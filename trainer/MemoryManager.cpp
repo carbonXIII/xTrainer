@@ -2,7 +2,7 @@
  * MemoryManager.cpp
  *
  *  Created on: Jan 24, 2018
- *      Author: shado
+ *  Author: Jordan Richards
  */
 
 #include "MemoryManager.h"

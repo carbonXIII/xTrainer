@@ -2,7 +2,7 @@
  * log.cpp
  *
  *  Created on: Dec 18, 2017
- *      Author: shado
+ *      Author: Jordan Richards
  */
 #include "log.h"
 

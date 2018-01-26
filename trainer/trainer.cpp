@@ -2,7 +2,7 @@
  * trainer.cpp
  *
  *  Created on: Nov 17, 2017
- *      Author: shado
+ *      Author: Jordan Richards
  */
 #include "trainer.h"
 #include "../tools/tools.h"

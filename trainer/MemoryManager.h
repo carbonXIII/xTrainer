@@ -2,7 +2,7 @@
  * MemoryManager.h
  *
  *  Created on: Jan 24, 2018
- *      Author: shado
+ *      Author: Jordan Richards
  */
 
 #ifndef TRAINER_MEMORYMANAGER_H_

@@ -2,7 +2,7 @@
  * csv.h
  *
  *  Created on: Jan 2, 2018
- *      Author: shado
+ *      Author: Jordan Richards
  */
 
 #ifndef TOOLS_CSV_H_
