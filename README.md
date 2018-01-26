@@ -5,8 +5,8 @@ I AM NOT RESPONSIBLE FOR WHAT YOU DO WITH THIS LIBRARY.
 Currently only supports Windows, though Linux support is planned in the future. Most functions have been ported to Linux at this point, except enumerateProcesses(), which can be avoided by removing some lines of code and manually entering a PID. **However, Linux support is not tested at all, not even sure if compiles. Expect it to crash and burn horribly.**
 
 Planned features:
-+Cross Platform support (see above)
-+Interactive Scripting Support (perhaps using boost::python)
-+DLL Injection
-+Packet sniffing (perhaps useful for botting)
-+GUI Overlays (perhaps through DLL injection)
++ Cross Platform support (see above)
++ Interactive Scripting Support (perhaps using boost::python)
++ DLL Injection
++ Packet sniffing (perhaps useful for botting)
++ GUI Overlays (perhaps through DLL injection)
