@@ -17,7 +17,7 @@ It's just the standard CMake build process.
 ```
 git clone https://github.com/thefinalstarman/xTrainer.git
 cd xTrainer
-cmake . #run cmake
+cmake . #If you are using the CMake GUI you would replace this step with configuring/generating in the GUI.
 cd <cmake-build-directory>
 make all
 make install
