@@ -14,6 +14,8 @@
 #include <string>
 #include <initializer_list>
 
+//TODO: fix Linux support (it has probably never worked)
+
 #ifdef TRAINER_LINUX
 	#include <sys/uio.h>
 #else
@@ -29,15 +31,19 @@ struct Address{
 	Address(bool relative, size_t value): relative(relative), value(value) {}
 };
 
+//Allows us to search for a page matching a certain criteria
 struct PageQuery{
 	PageQuery(): containedAddresses() {};
 	PageQuery(std::string title, size_t size = 0, std::initializer_list<Address> addresses = {}): size(size), title(title), containedAddresses(addresses) {}
 
-	size_t size = 0;
-	std::string title;
-	std::vector<Address> containedAddresses;
+	size_t size = 0;//the desired size of the page (0 if we don't care)
+	std::string title;//a string containing a byte array that we expect to find at the beginning of the desired page
+	std::vector<Address> containedAddresses;//desired foreign addresses that should be in the page
 };
 
+//TODO: add support for other types of PageQuery, such as string searches (sort of like Cheat Engine)
+
+//Stores the information for a page to allow us to allocate Pages (see MemoryManager.h)
 struct PageInfo{
 	PageInfo(void* startAddr, void* endAddr);
 	PageInfo(void* startAddr, size_t size);
@@ -48,24 +54,27 @@ struct PageInfo{
 	void* endAddr = 0;
 };
 
+//Structuring holding Process information (on windows it also stores a HANDLE to the process)
 struct Process{
 	Process(unsigned long pid, std::string filename);
 
 	size_t readBytes(void* addr, void* buffer, size_t size);
 	size_t writeBytes(void* addr, void* buffer, size_t size);
 
+	//Query functions that take PageQuery objects to find appropriate Pages
 	std::vector<PageInfo> queryPages(const PageQuery& description);
-	PageInfo queryFirstPage(const PageQuery& description);
+	PageInfo queryFirstPage(const PageQuery& description);//throws a runtime_exception if there are no pages
 
 	unsigned long getPID() const { return pid; }
 	void* getBaseAddress() const { return baseAddress; }
 
 	~Process();
 
+	//returns a full list of PageInfo
 	std::vector<PageInfo> getPageList();
 
 private:
-	void resolveBaseAddress(std::string filename);
+	void resolveBaseAddress(std::string filename);//called during constructor (requires filename to find the base page, or part of the filename)
 
 	unsigned long pid;
 	void* baseAddress;

@@ -14,6 +14,7 @@
 
 #include "tools.h"
 
+//Really simple convenience CSV reader (that probably shouldn't exist in this library)
 struct SimpleCSV{
 	SimpleCSV(const char* filename, bool hasHeader);
 

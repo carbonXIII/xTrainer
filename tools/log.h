@@ -11,6 +11,7 @@
 #include <iostream>
 #include <fstream>
 
+//A simple logger that uses macros to prepend messages with the function signature
 struct Logger{
 	Logger() {}
 

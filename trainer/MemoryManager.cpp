@@ -44,10 +44,10 @@ void MemoryManager::addPage(PageInfo&& pageInfo, int expiration){
 const Page* MemoryManager::findPage(size_t addr){
 	if(!pages.size())return nullptr;
 	auto page = std::lower_bound(pages.begin(), pages.end(), addr);
-	if(page == pages.end() || (page != pages.begin() && page->addr > addr))page--;
+	if(page == pages.end() || (page != pages.begin() && page->getStartAddress() > addr))page--;
 
 
-	if(page->addr + page->size < addr)return &*page;
+	if(page->getStartAddress() + page->getSize() < addr)return &*page;
 	return nullptr;
 }
 
@@ -58,7 +58,7 @@ size_t MemoryManager::read(size_t addr, void* buffer, size_t n, bool forceUpdate
 		return parent->readBytes((void*)addr, buffer, n);
 	}
 
-	if(allExpired || forceUpdate || p->lastUpdated < time(0) + p->expirationTime)
+	if(allExpired || forceUpdate || p->isExpired())
 		p->update(parent);
 
 	allExpired = false;
