@@ -23,7 +23,7 @@ make all
 make install
 ```
 
-This will generate the build artifcats at the specified CMake install prefix.
+This will generate the build artifacts at the specified CMake install prefix.
 
 ## Usage
 See the sample program(s) for basic library usage.
