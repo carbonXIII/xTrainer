@@ -10,3 +10,21 @@ Planned features:
 + DLL Injection
 + Packet sniffing (perhaps useful for botting)
 + GUI Overlays (perhaps through DLL injection)
+
+## Building from source
+It's just the standard CMake build process.
+
+```
+git clone https://github.com/thefinalstarman/xTrainer.git
+cd xTrainer
+cmake . #run cmake
+cd <cmake-build-directory>
+make all
+make install
+```
+
+This will generate the build artifcats at the specified CMake install prefix.
+
+## Usage
+See the sample program(s) for basic library usage.
+Documentation will be available in the future.
