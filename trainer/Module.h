@@ -13,6 +13,8 @@
 #include <map>
 #include <set>
 
+namespace xtrainer{
+
 //Specifies the size of a numerical property
 enum class Size {
 	_8BIT = 1,
@@ -157,5 +159,7 @@ protected:
 private:
 	MemoryManager* parent = 0;
 };
+
+}//namespace xtrainer
 
 #endif /* TRAINER_MODULE_H_ */

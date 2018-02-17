@@ -22,6 +22,8 @@
 	#include <windows.h>
 #endif
 
+namespace xtrainer{
+
 extern std::vector<std::pair<unsigned long, std::string>> enumerateProcesses(const char* keyword);
 
 struct Address{
@@ -80,5 +82,7 @@ private:
 	void* baseAddress;
 	void* proc;//only used on windows
 };
+
+}//namespace xtrainer
 
 #endif /* TRAINER_H_ */

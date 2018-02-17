@@ -16,6 +16,9 @@
 
 using namespace std;
 
+namespace xtrainer{
+
+#ifndef TRAINER_LINUX
 std::vector<std::pair<unsigned long, std::string>> enumerateProcesses(const char* keyword){
 	vector<pair<unsigned long, string>> ret;
 
@@ -40,6 +43,7 @@ std::vector<std::pair<unsigned long, std::string>> enumerateProcesses(const char
 
 	return ret;
 }
+#endif
 
 PageInfo::PageInfo(void* startAddr, void* endAddr): startAddr(startAddr), endAddr(endAddr) {}
 PageInfo::PageInfo(void* startAddr, size_t size): startAddr(startAddr), endAddr(startAddr + size) {}
@@ -209,3 +213,5 @@ PageInfo Process::queryFirstPage(const PageQuery& query){
 
 	throw runtime_error("Could not find requested memory page.");
 }
+
+}//namespace xtrainer

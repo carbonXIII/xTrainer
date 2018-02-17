@@ -11,6 +11,8 @@
 #include <exception>
 #include <functional>
 
+namespace xtrainer{
+
 Page::Page(PageInfo&& p, int expiration): expirationTime(expiration){
 	size = p.size();
 	addr = (size_t)p.startAddr;
@@ -102,5 +104,6 @@ void MemoryManager::updateModules(){
 	}
 
 	updateProperties(props);
-
 }
+
+}//namespace xtrainer

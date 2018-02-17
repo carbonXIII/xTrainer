@@ -15,6 +15,8 @@
 #include <set>
 #include <map>
 
+namespace xtrainer{
+
 //Cache for foreign process memory
 struct Page{
 	Page(PageInfo&& p, int expiration);
@@ -92,5 +94,7 @@ private:
 
 	bool allExpired = false;
 };
+
+}//namespace xtrainer
 
 #endif /* TRAINER_MEMORYMANAGER_H_ */

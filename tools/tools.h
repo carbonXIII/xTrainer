@@ -16,6 +16,8 @@
 
 #include "log.h"//Basic logging
 
+namespace xtrainer{
+
 //Big-endian to little endian conversion function
 template <typename T> T reverse(T t);
 
@@ -25,6 +27,8 @@ template <typename T> T get(char* p, bool bigEndian);
 extern bool fileExists(const char* filename);
 
 template <typename T> void convert(std::string s, T& out);
+
+} //namespace xtrainer
 
 #include "tools-imp.h"
 

@@ -11,6 +11,8 @@
 
 using namespace std;
 
+namespace xtrainer{
+
 SimpleCSV::SimpleCSV(const char* filename, bool hasHeader){
 	read(filename, hasHeader);
 }
@@ -71,3 +73,5 @@ void SimpleCSV::setReadHeaders(size_t* idc, int n){
 	readHeaders.clear();
 	readHeaders.insert(readHeaders.begin(), idc, idc + n);
 }
+
+}//namespace xtrainer

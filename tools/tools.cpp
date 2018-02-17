@@ -8,7 +8,11 @@
 #include "tools.h"
 #include <fstream>
 
+namespace xtrainer{
+
 bool fileExists(const char* filename){
 	std::ifstream fin(filename);
 	return fin.good();
 }
+
+}// namespace xtrainer

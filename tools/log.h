@@ -11,6 +11,8 @@
 #include <iostream>
 #include <fstream>
 
+namespace xtrainer{
+
 //A simple logger that uses macros to prepend messages with the function signature
 struct Logger{
 	Logger() {}
@@ -70,5 +72,7 @@ extern Logger default_logger;
 #define CLOG ( logger ) _log((logger), (__FUNCTION_NAME__),(__FILENAME__),(__LINE__))//Custom logger (function-like)
 
 extern Logger& _log(Logger& logger, const char* func_name, const char* file_name, long line_number);//Logging helper function
+
+}//namespace xtrainer
 
 #endif /* TOOLS_LOG_H_ */

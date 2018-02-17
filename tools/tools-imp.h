@@ -10,6 +10,8 @@
 #include <cstring>
 #include <sstream>
 
+namespace xtrainer{
+
 template <typename T>
 T reverse(T t){
 	char* inBytes = (char*)&t;
@@ -52,4 +54,5 @@ void convert(std::string s, T& out){
 	c(s,out);
 }
 
+}//namespace xtrainer
 #endif

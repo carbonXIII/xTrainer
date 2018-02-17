@@ -10,6 +10,7 @@
 #include <xTrainer.h>
 
 using namespace std;
+using namespace xtrainer;
 
 //Module that handles resolving pointers (to locate the text address in memory)
 struct Text: public Module{

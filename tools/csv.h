@@ -14,6 +14,8 @@
 
 #include "tools.h"
 
+namespace xtrainer{
+
 //Really simple convenience CSV reader (that probably shouldn't exist in this library)
 struct SimpleCSV{
 	SimpleCSV(const char* filename, bool hasHeader);
@@ -66,5 +68,7 @@ private:
 	std::vector<size_t> readHeaders;
 	int cur = 0;
 };
+
+} //namespace xtrainer
 
 #endif /* TOOLS_CSV_H_ */

@@ -11,6 +11,8 @@
 #include <unordered_set>
 #include <memory>
 
+namespace xtrainer{
+
 void reverse(Size s, void* in, void* out){
 	int n = (int)s;
 	char* _in = (char*)in; char* _out = (char*)out;
@@ -208,3 +210,4 @@ void Module::read(Property* prop, char* str){
 
 Module::Module(MemoryManager* parent): parent(parent) {}
 
+}//namespace xtrainer
