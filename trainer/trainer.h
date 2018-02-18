@@ -19,7 +19,10 @@
 #ifdef TRAINER_LINUX
 	#include <sys/uio.h>
 #else
+	#include <crtdefs.h>
 	#include <windows.h>
+	#include <winbase.h>
+	#include <psapi.h>
 #endif
 
 namespace xtrainer{

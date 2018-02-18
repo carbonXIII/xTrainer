@@ -8,7 +8,6 @@
 #ifndef TOOLS_H_
 #define TOOLS_H_
 
-#include <crtdefs.h>
 #include <tuple>
 #include <cstring>
 #include <iostream>

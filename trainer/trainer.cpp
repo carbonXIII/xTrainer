@@ -7,10 +7,6 @@
 #include "trainer.h"
 #include "../tools/tools.h"
 
-#include <windows.h>
-#include <winbase.h>
-#include <psapi.h>
-#include <conio.h>
 #include <fstream>
 #include <cstring>
 
