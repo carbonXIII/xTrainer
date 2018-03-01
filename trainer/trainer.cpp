@@ -9,6 +9,8 @@
 
 #include <fstream>
 #include <cstring>
+#include <limits>
+#include <sstream>
 
 using namespace std;
 
@@ -70,6 +72,7 @@ Process::~Process(){
 }
 
 void Process::resolveBaseAddress(string programName){
+#ifndef TRAINER_LINUX
     HMODULE hMods[1024];
     DWORD size;
 
@@ -85,49 +88,91 @@ void Process::resolveBaseAddress(string programName){
             }
         }
     }
-	baseAddress = nullptr;
+    baseAddress = nullptr;
+#else	
+	char buf[64];
+	sprintf(buf, "/proc/%ld/maps", pid);
+	ifstream fin(buf);
+
+	string line;
+	string addr, path, trash;
+	while(!fin.eof()){
+		getline(fin,line);
+
+		istringstream ss(line);
+
+		//ignore 4 words
+		ss >> addr >> trash >> trash >> trash >> trash >> path;	
+
+		cout << addr << " " << path << endl;
+		if(path.find(string(programName)) != string::npos){
+			baseAddress = PageInfo(addr).startAddr;
+			return;
+		}
+	}baseAddress = nullptr;
+
+	fin.close();
+#endif
 }
 
 size_t Process::readBytes(void* addr, void* buffer, size_t size){
-	size_t r = 0;
+	size_t read = 0;
+	size_t errorNum = 0;
 
 #ifndef TRAINER_LINUX
-	if(!ReadProcessMemory(proc, addr, buffer, size, &r)){
-		LOG << "Error while reading process memory: " << GetLastError() << '\n';
-		LOG << "Memory address: " << addr << '\n';
-		LOG << "Bytes read: " << r << "; Expected: " << size << '\n';
-	}
+	if(!ReadProcessMemory(proc, addr, buffer, size, &read))
+		errorNum = GetLastError();
 #else
 	iovec local, remote;
-	local.base = buffer;
-	local.size = size;
+	local.iov_base = buffer;
+	local.iov_len = size;
 
-	remote.base = addr;
-	remote.size = size;
+	remote.iov_base = addr;
+	remote.iov_len = size;
 
 
-	read = process_vm_readv(pid, &local, 1, &remote, 1, 0);
+	long long _read = process_vm_readv(pid, &local, 1, &remote, 1, 0);
+
+	if(_read == -1)
+		errorNum = errno;
+	//else
+		read = _read;
 #endif
+	if(errorNum){
+		LOG << "Error while reading process memory: " << errorNum << "\n";
+		LOG << "Foreign Address: " << addr << "\n";
+		LOG << "Expected byte count: " << size << "\n";	
+	}
 
-	return r;
+	return read;
 }
 
 size_t Process::writeBytes(void* addr, void* buffer, size_t size){
 	size_t written = 0;
+	size_t errorNum = 0;
 
 #ifndef TRAINER_LINUX
-	WriteProcessMemory(proc, addr, buffer, size, &written);
+	if(WriteProcessMemory(proc, addr, buffer, size, &written))
+		errorNum = GetLastError();
 #else
 	iovec local, remote;
-	local.base = buffer;
-	local.size = size;
+	local.iov_base = buffer;
+	local.iov_len = size;
 
-	remote.base = addr;
-	remote.size = size;
+	remote.iov_base = addr;
+	remote.iov_len = size;
 
 
-	read = process_vm_writev(pid, &local, 1, &remote, 1, 0);
+	written = process_vm_writev(pid, &local, 1, &remote, 1, 0);
+
+	if(written == -1)
+		errorNum = errno;
 #endif
+	if(errorNum){
+		LOG << "Error while writing process memory: " << errorNum << "\n";
+		LOG << "Foreign Address: " << addr << "\n";
+		LOG << "Expected byte count: " << size << "\n";
+	}
 
 	return written;
 }

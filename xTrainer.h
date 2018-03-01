@@ -5,6 +5,12 @@
  *      Author: Jordan Richards
  */
 
+#ifndef _WIN32
+#ifndef TRAINER_LINUX
+#define TRAINER_LINUX
+#endif /* TRAINER_LINUX */
+#endif /* _WIN32 */
+
 #ifndef XTRAINER_H_
 #define XTRAINER_H_
 

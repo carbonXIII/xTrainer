@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.1)
 project (xTrainer)
 
 set(SOURCE_DIRS					/trainer
@@ -9,11 +9,12 @@ foreach(dir ${SOURCE_DIRS})
 endforeach()
 include_directories(SOURCE_DIRS)
 
-if (!WIN32)
+set (CMAKE_CXX_STANDARD 11)
+add_library (xTrainer ${sources})
+
+if(NOT WIN32)
 	add_definitions(-DTRAINER_LINUX)
 endif()
-
-add_library (xTrainer ${sources})
 
 install(TARGETS xTrainer DESTINATION lib)
 foreach(dir ${SOURCE_DIRS})
@@ -27,7 +28,3 @@ set(BUILD_SAMPLES TRUE CACHE BOOL "Build sample programs")
 if(${BUILD_SAMPLES})
 	add_subdirectory(samples samples)
 endif()
-
-
-list(APPEND CMAKE_CXX_FLAGS "--std=c++11 -g")
-#list(APPEND CMAKE_EXE_LINKER_FLAGS "-Wl,--subsystem,windows -mwindows")
