@@ -17,8 +17,8 @@ using namespace std;
 namespace xtrainer{
 
 #ifndef TRAINER_LINUX
-std::vector<std::pair<unsigned long, std::string>> enumerateProcesses(const char* keyword){
-	vector<pair<unsigned long, string>> ret;
+std::vector<std::pair<unsigned long, std::string> > enumerateProcesses(const char* keyword){
+	vector<pair<unsigned long, string> > ret;
 
 	vector<unsigned long> buffer(100);
 	char strbuf[100];
@@ -147,7 +147,7 @@ size_t Process::readBytes(void* addr, void* buffer, size_t size){
 	return read;
 }
 
-size_t Process::writeBytes(void* addr, void* buffer, size_t size){
+size_t Process::writeBytes(void* addr, const void* buffer, size_t size){
 	size_t written = 0;
 	size_t errorNum = 0;
 
@@ -175,6 +175,25 @@ size_t Process::writeBytes(void* addr, void* buffer, size_t size){
 	}
 
 	return written;
+}
+
+void* Process::allocateMemory(size_t length, MemAccess access){
+  long _access;
+
+  if(access == RO){
+    _access = PAGE_READONLY;
+  }else if(access == RW){
+    _access = PAGE_READWRITE;
+  }else if(access == RE){ 
+    _access = PAGE_EXECUTE_READ;
+  }else if(access == RWE){
+    _access = PAGE_EXECUTE_READWRITE;
+  }else{
+    LOG << "Unknown access type.\n";
+    return 0;
+  }
+
+  return VirtualAllocEx(getInternalHandle(), 0, length, MEM_COMMIT | MEM_RESERVE, _access);
 }
 
 std::vector<PageInfo> Process::getPageList(){
@@ -253,6 +272,37 @@ PageInfo Process::queryFirstPage(const PageQuery& query){
 	}
 
 	throw runtime_error("Could not find requested memory page.");
+}
+
+std::vector<long> Process::getThreads(){
+  vector<long> ret;
+
+  HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+  if(!snapshot){
+    LOG << "Failed to retreive snapshot, error " << GetLastError() << "\n";
+    return ret;
+  }
+
+  THREADENTRY32 buf = {sizeof(THREADENTRY32)};
+  if(!Thread32First(snapshot, &buf))
+    return ret;
+
+  do{
+    if(buf.th32OwnerProcessID == getPID())ret.push_back(buf.th32ThreadID);
+    buf.dwSize = sizeof(THREADENTRY32);
+  }while(Thread32Next(snapshot, &buf));
+
+  CloseHandle(snapshot);
+
+  return ret;
+}
+
+void Process::startDebugging(){
+  DebugActiveProcess(getPID());
+}
+
+void Process::stopDebugging(){
+  DebugActiveProcessStop(getPID());
 }
 
 }//namespace xtrainer

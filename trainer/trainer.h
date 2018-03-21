@@ -8,8 +8,6 @@
 #ifndef TRAINER_H_
 #define TRAINER_H_
 
-#define _WIN32_WINNT 0x0600
-
 #include <vector>
 #include <string>
 #include <initializer_list>
@@ -23,11 +21,12 @@
 	#include <windows.h>
 	#include <winbase.h>
 	#include <psapi.h>
+  #include <TlHelp32.h>
 #endif
 
 namespace xtrainer{
 
-extern std::vector<std::pair<unsigned long, std::string>> enumerateProcesses(const char* keyword);
+extern std::vector<std::pair<unsigned long, std::string> > enumerateProcesses(const char* keyword);
 
 struct Address{
 	bool relative = false;
@@ -59,12 +58,18 @@ struct PageInfo{
 	void* endAddr = 0;
 };
 
+enum MemAccess {RO,/*Read Only*/
+                RW,/*Read Write*/
+                RE,/*Read and Exceute*/
+                RWE};/*Read, Write, Execute*/
+
 //Structuring holding Process information (on windows it also stores a HANDLE to the process)
 struct Process{
 	Process(unsigned long pid, std::string filename);
 
 	size_t readBytes(void* addr, void* buffer, size_t size);
-	size_t writeBytes(void* addr, void* buffer, size_t size);
+	size_t writeBytes(void* addr, const void* buffer, size_t size);
+  void* allocateMemory(size_t length, MemAccess access);
 
 	//Query functions that take PageQuery objects to find appropriate Pages
 	std::vector<PageInfo> queryPages(const PageQuery& description);
@@ -72,6 +77,12 @@ struct Process{
 
 	unsigned long getPID() const { return pid; }
 	void* getBaseAddress() const { return baseAddress; }
+  std::vector<long> getThreads();
+
+  void startDebugging();
+  void stopDebugging();
+
+  void* getInternalHandle() const { return proc; }//only useful on windows
 
 	~Process();
 

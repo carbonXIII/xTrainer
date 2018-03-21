@@ -18,5 +18,6 @@
 #include "tools/tools.h"
 
 #include "trainer/trainer.h"
+#include "trainer/control.h"
 
 #endif /* XTRAINER_H_ */
