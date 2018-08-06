@@ -86,7 +86,7 @@ CPUState::~CPUState(){
 }
 
 void* CPUState::update(void* context) {
-  memcpy(this->context, context, size);
+  return memcpy(this->context, context, size);
 }
 
 bool CPUState::setRegister(const string& registerName, void* data, int size){
@@ -121,8 +121,10 @@ void ForeignThread::pause(){
   SuspendThread(handle);
 }
 
-void ForeignThread::resume(bool debug){
-  if(debug)ContinueDebugEvent(parent->getPID(), threadID, DBG_CONTINUE);
+void ForeignThread::resume(bool debug, int32_t threadId){
+  if(threadId == 0)
+    threadId = this->threadID;
+  if(debug)ContinueDebugEvent(parent->getPID(), threadId, DBG_CONTINUE);
   ResumeThread(handle);
 }
 
@@ -169,53 +171,89 @@ long long ForeignThread::waitForFatalDebugEvent(){
            || dbgEvent.dwDebugEventCode == EXIT_THREAD_DEBUG_EVENT))
       return dbgEvent.dwDebugEventCode == EXCEPTION_DEBUG_EVENT ? dbgEvent.u.Exception.ExceptionRecord.ExceptionCode : -dbgEvent.dwDebugEventCode;
 
+    LOG << "Non-fatal or irrelevant debug event, ignored.\n";
     ContinueDebugEvent(dbgEvent.dwProcessId, dbgEvent.dwThreadId, DBG_CONTINUE);
   }
 }
 
+const size_t STACK_SIZE = 1u << 20;
 void ForeignThread::runFunction(void* foreignAddr, Argument ret, vector<Argument> args){
   parent->startDebugging();
+  LOG << "Attempting to break target process: " << DebugBreakProcess(parent->getInternalHandle()) << "\n";
+  DEBUG_EVENT dbgEvent;
+  WaitForDebugEvent(&dbgEvent, INFINITE);
+
   pause();
 
+  LOG << "Setting up CPU state.\n";
   CPUState backup = getCPUState();
   CPUState custom = backup;
-
   //set some things so that when the thread is resumed it will run the function, then SIGSEGV
+
+  void* stack = parent->allocateMemory(STACK_SIZE, RW);
+
+  //give it it's own stack
+  custom.r<void*>("rsp") = stack + STACK_SIZE;
+  if(custom.r<size_t>("rsp") % 16)
+    custom.r<size_t>("rsp") += 16 - ((size_t)custom.r<void*>("rsp") % 16);
+  LOG << "Stack address: " << custom.r<void*>("rsp") << "\n";
+
+  const string argRegs[2][4] = {{"rcx", "rdx", "r8", "r9"}, {"xmm0", "xmm1", "xmm2", "xmm3"}};
+
+  for(int i = 0; i < args.size(); i++){
+    if(i < 4)custom.setRegister(argRegs[args[i].fp][i], args[i].addr, args[i].size);
+    else custom.r<void*>("rsp") = stackPush(custom.r<void*>("rsp"), args[i]);
+  }
+
+  //allocate parameter space (Windows x64)
+  custom.r<void*>("rsp") -= 0x30;
 
   //push 0 onto the stack as the return address to cause SIGSEGV
   size_t death = 0;
   custom.r<void*>("rsp") = stackPush(custom.r<void*>("rsp"), Argument((void*)&death, sizeof(void*)));
 
-  int k[] = {0,0};//the number of int/fp args we have had so far
-
-  const string argRegs[2][4] = {{"rcx", "rdx", "r8", "r9"}, {"xmm0", "xmm1", "xmm2", "xmm3"}};
-
-  for(int i = 0; i < args.size(); i++){
-    if(k[args[i].fp] < 4)custom.setRegister(argRegs[args[i].fp][k[args[i].fp]], args[i].addr, args[i].size);
-    else custom.r<void*>("rsp") = stackPush(custom.r<void*>("rsp"), args[i]);
-    k[args[i].fp]++;
-  }
-
   custom.r<void*>("rip") = foreignAddr;
 
+  LOG << "Executing function and waiting for signal.\n";
+
   setCPUState(custom);
-  resume();
+  resume(true, dbgEvent.dwThreadId);
 
   //catch the SIGSEGV and retrieve the return value of our function
   long long errCode = waitForFatalDebugEvent();
 
-  if(errCode != EXCEPTION_ACCESS_VIOLATION){
+  if(errCode != EXCEPTION_ACCESS_VIOLATION && errCode != EXCEPTION_BREAKPOINT){
     LOG << "Thread died before completing function.\n";
-    LOG << "Error code: " << errCode << '\n';
+    LOG << "Error code: " << std::hex << errCode << '\n';
   }
 
   custom = getCPUState();
   if(ret.addr && ret.size)custom.getRegister("rax",ret.addr,ret.size);
 
+  LOG << "Final PC value: " << std::hex << (size_t)custom.r<void*>("rip") << "\n";
+  LOG << "Final Stack value: " << std::hex << (size_t)custom.r<void*>("rsp") << "\n";
+  LOG << "Restoring original state.\n";
+
   //reset the thread using the original context (including the stack)
   setCPUState(backup);
+
+  //free the stack we allocated
+  if(stack)
+    if(!parent->freeMemory(stack))
+      LOG << "Failed to free stack.\n";
+
   resume(true);
+  ContinueDebugEvent(dbgEvent.dwProcessId, dbgEvent.dwThreadId, DBG_CONTINUE);
   parent->stopDebugging();
+}
+
+void ForeignThread::initializeArgumentVector(std::vector<Argument>& argv) {
+  (void) argv;
+}
+
+void ForeignThread::freeArgumentVector(std::vector<Argument>& argv){
+  for(auto it = argv.begin(); it != argv.end(); it++)
+    delete [] ((char*)it->addr);
 }
 
 }//namespace xtrainer

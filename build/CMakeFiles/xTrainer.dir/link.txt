@@ -1,0 +1,2 @@
+C:\MinGW\bin\ar.exe qc libxTrainer.a  CMakeFiles/xTrainer.dir/trainer/control.cpp.obj CMakeFiles/xTrainer.dir/trainer/MemoryManager.cpp.obj CMakeFiles/xTrainer.dir/trainer/Module.cpp.obj CMakeFiles/xTrainer.dir/trainer/trainer.cpp.obj CMakeFiles/xTrainer.dir/tools/csv.cpp.obj CMakeFiles/xTrainer.dir/tools/log.cpp.obj CMakeFiles/xTrainer.dir/tools/tools.cpp.obj
+C:\MinGW\bin\ranlib.exe libxTrainer.a

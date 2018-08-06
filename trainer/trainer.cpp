@@ -72,6 +72,11 @@ Process::~Process(){
 }
 
 void Process::resolveBaseAddress(string programName){
+  if(programName.empty()){
+    baseAddress = nullptr;
+    return;
+  }
+
 #ifndef TRAINER_LINUX
     HMODULE hMods[1024];
     DWORD size;
@@ -141,7 +146,7 @@ size_t Process::readBytes(void* addr, void* buffer, size_t size){
 	if(errorNum){
 		LOG << "Error while reading process memory: " << errorNum << "\n";
 		LOG << "Foreign Address: " << addr << "\n";
-		LOG << "Expected byte count: " << size << "\n";	
+		LOG << "Expected byte count: " << size << "\n";
 	}
 
 	return read;
@@ -152,7 +157,7 @@ size_t Process::writeBytes(void* addr, const void* buffer, size_t size){
 	size_t errorNum = 0;
 
 #ifndef TRAINER_LINUX
-	if(WriteProcessMemory(proc, addr, buffer, size, &written))
+	if(!WriteProcessMemory(proc, addr, buffer, size, &written))
 		errorNum = GetLastError();
 #else
 	iovec local, remote;
@@ -184,7 +189,7 @@ void* Process::allocateMemory(size_t length, MemAccess access){
     _access = PAGE_READONLY;
   }else if(access == RW){
     _access = PAGE_READWRITE;
-  }else if(access == RE){ 
+  }else if(access == RE){
     _access = PAGE_EXECUTE_READ;
   }else if(access == RWE){
     _access = PAGE_EXECUTE_READWRITE;
@@ -194,6 +199,10 @@ void* Process::allocateMemory(size_t length, MemAccess access){
   }
 
   return VirtualAllocEx(getInternalHandle(), 0, length, MEM_COMMIT | MEM_RESERVE, _access);
+}
+
+bool Process::freeMemory(void* addr){
+  return VirtualFreeEx(getInternalHandle(), addr, 0, MEM_RELEASE) != 0;
 }
 
 std::vector<PageInfo> Process::getPageList(){
