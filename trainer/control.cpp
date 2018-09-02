@@ -117,15 +117,15 @@ void ForeignThread::join(){
   WaitForSingleObject(handle, INFINITE);
 }
 
-void ForeignThread::pause(){
-  SuspendThread(handle);
+int ForeignThread::pause(){
+  return SuspendThread(handle);
 }
 
-void ForeignThread::resume(bool debug, int32_t threadId){
+int ForeignThread::resume(bool debug, int32_t threadId){
   if(threadId == 0)
     threadId = this->threadID;
   if(debug)ContinueDebugEvent(parent->getPID(), threadId, DBG_CONTINUE);
-  ResumeThread(handle);
+  return ResumeThread(handle);
 }
 
 void* ForeignThread::stackPush(void* basePointer, Argument arg){
@@ -188,11 +188,11 @@ void ForeignThread::runFunction(void* foreignAddr, Argument ret, vector<Argument
   LOG << "Setting up CPU state.\n";
   CPUState backup = getCPUState();
   CPUState custom = backup;
+
   //set some things so that when the thread is resumed it will run the function, then SIGSEGV
 
-  void* stack = parent->allocateMemory(STACK_SIZE, RW);
-
   //give it it's own stack
+  void* stack = parent->allocateMemory(STACK_SIZE, RW);
   custom.r<void*>("rsp") = stack + STACK_SIZE;
   if(custom.r<size_t>("rsp") % 16)
     custom.r<size_t>("rsp") += 16 - ((size_t)custom.r<void*>("rsp") % 16);
@@ -217,7 +217,7 @@ void ForeignThread::runFunction(void* foreignAddr, Argument ret, vector<Argument
   LOG << "Executing function and waiting for signal.\n";
 
   setCPUState(custom);
-  resume(true, dbgEvent.dwThreadId);
+  while(resume(true, dbgEvent.dwThreadId) > 1);
 
   //catch the SIGSEGV and retrieve the return value of our function
   long long errCode = waitForFatalDebugEvent();
@@ -242,7 +242,7 @@ void ForeignThread::runFunction(void* foreignAddr, Argument ret, vector<Argument
     if(!parent->freeMemory(stack))
       LOG << "Failed to free stack.\n";
 
-  resume(true);
+  while(resume(true) > 1);
   ContinueDebugEvent(dbgEvent.dwProcessId, dbgEvent.dwThreadId, DBG_CONTINUE);
   parent->stopDebugging();
 }

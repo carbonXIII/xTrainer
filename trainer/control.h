@@ -58,8 +58,8 @@ public:
   long getID() { return threadID; }
 
   void join();
-  void pause();
-  void resume(bool debug = false, int32_t threadId = 0);
+  int pause();
+  int resume(bool debug = false, int32_t threadId = 0);
 
   void* stackPush(void* basePointer, Argument arg);
   void* stackPop(void* basePointer, size_t size, void* out = 0);
