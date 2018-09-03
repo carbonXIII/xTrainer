@@ -14,7 +14,7 @@ using namespace xtrainer;
 
 //Module that handles resolving pointers (to locate the text address in memory)
 struct Text: public Module{
-	Text(MemoryManager* parent, size_t addr): Module(parent), addr(addr) {};
+	Text(MemoryManager* parent, address_t addr): Module(parent), addr(addr) {};
 
 	//overload the init function to call post-init on all our
 	virtual void init(){
@@ -23,7 +23,7 @@ struct Text: public Module{
 		cursPos.init(this);
 	}
 
-	size_t addr;//the base address of the process (referred to as [notepad.exe])
+	address_t addr;//the base address of the process (referred to as [notepad.exe])
 	Property staticTextPtr = Property("staticTextPtr", {addr+0x24548}, Size::_64BIT);//has a fixed address at [notepad.exe]+0x24548
 	Property dynamicTextPtr = Property("dynamicTextPtr", {0, &staticTextPtr}, Size::_64BIT);//has a dynamic address at *staticTextPtr
 
@@ -51,7 +51,7 @@ int main(int argc, char** argv){
 	MemoryManager mm(p);
 
 	//Add our Text module and update the modules
-	mm.addModule<Text>("text", (size_t)p->getBaseAddress());
+	mm.addModule<Text>("text", p->getBaseAddress());
 	mm.updateModules();
 
 	cout << std::hex << "static text address: " << (size_t)mm["text"]["staticTextPtr"] << std::dec << endl;
@@ -73,7 +73,7 @@ int main(int argc, char** argv){
 		k = 0;
 		do{
 			//reads characters with as little efficiency as possible, 1 character at a time
-			read = p->readBytes((void*)((size_t)mm["text"]["dynamicTextPtr"] + k), &buffer, sizeof(char));
+			read = p->readBytes((address_t)mm["text"]["dynamicTextPtr"] + k, &buffer, sizeof(char));
 			if(buffer == 0 || buffer == '\n')break;
 			cout.put(buffer);
 			k += 2;//increment by 2 to deal with unicode

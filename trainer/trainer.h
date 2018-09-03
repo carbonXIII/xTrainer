@@ -11,6 +11,7 @@
 #include <vector>
 #include <string>
 #include <initializer_list>
+#include "../tools/tools.h"
 
 //TODO: fix Linux support (it has probably never worked)
 
@@ -26,77 +27,79 @@
 
 namespace xtrainer{
 
-extern std::vector<std::pair<unsigned long, std::string> > enumerateProcesses(const char* keyword);
+  extern std::vector<std::pair<unsigned long, std::string> > enumerateProcesses(const char* keyword);
 
-struct Address{
-	bool relative = false;
-	size_t value;
 
-	Address(bool relative, size_t value): relative(relative), value(value) {}
-};
+  struct Address{
+    bool relative = false;
+    address_t value;
 
-//Allows us to search for a page matching a certain criteria
-struct PageQuery{
-	PageQuery(): containedAddresses() {};
-	PageQuery(std::string title, size_t size = 0, std::initializer_list<Address> addresses = {}): size(size), title(title), containedAddresses(addresses) {}
+    Address(bool relative, address_t value): relative(relative), value(value) {}
+  };
 
-	size_t size = 0;//the desired size of the page (0 if we don't care)
-	std::string title;//a string containing a byte array that we expect to find at the beginning of the desired page
-	std::vector<Address> containedAddresses;//desired foreign addresses that should be in the page
-};
+  //Allows us to search for a page matching a certain criteria
+  struct PageQuery{
+    PageQuery(): containedAddresses() {};
+    PageQuery(std::string title, size_t size = 0, std::initializer_list<Address> addresses = {}): size(size), title(title), containedAddresses(addresses) {}
 
-//TODO: add support for other types of PageQuery, such as string searches (sort of like Cheat Engine)
+    size_t size = 0;//the desired size of the page (0 if we don't care)
+    std::string title;//a string containing a byte array that we expect to find at the beginning of the desired page
+    std::vector<Address> containedAddresses;//desired foreign addresses that should be in the page
+  };
 
-//Stores the information for a page to allow us to allocate Pages (see MemoryManager.h)
-struct PageInfo{
-	PageInfo(void* startAddr, void* endAddr);
-	PageInfo(void* startAddr, size_t size);
-	PageInfo(std::string range);
+  //TODO: add support for other types of PageQuery, such as string searches (sort of like Cheat Engine)
 
-	size_t size() const { return (size_t)endAddr - (size_t)startAddr; }
-	void* startAddr = 0;
-	void* endAddr = 0;
-};
+  //Stores the information for a page to allow us to allocate Pages (see MemoryManager.h)
+  struct PageInfo{
+    PageInfo(address_t startAddr, address_t endAddr);
+    PageInfo(std::string range);
 
-enum MemAccess {RO,/*Read Only*/
-                RW,/*Read Write*/
-                RE,/*Read and Exceute*/
-                RWE};/*Read, Write, Execute*/
+    size_t size() const { return (size_t)endAddr - (size_t)startAddr; }
+    address_t startAddr = 0;
+    address_t endAddr = 0;
+  };
 
-//Structuring holding Process information (on windows it also stores a HANDLE to the process)
-struct Process{
-	Process(unsigned long pid, std::string filename = "");
+  enum MemAccess {RO,/*Read Only*/
+                  RW,/*Read Write*/
+                  RE,/*Read and Exceute*/
+                  RWE};/*Read, Write, Execute*/
 
-	size_t readBytes(void* addr, void* buffer, size_t size);
-	size_t writeBytes(void* addr, const void* buffer, size_t size);
-  void* allocateMemory(size_t length, MemAccess access);
-  bool freeMemory(void* addr);
+  //Structuring holding Process information (on windows it also stores a HANDLE to the process)
+  struct Process{
+    Process(unsigned long pid, std::string filename = "");
 
-	//Query functions that take PageQuery objects to find appropriate Pages
-	std::vector<PageInfo> queryPages(const PageQuery& description);
-	PageInfo queryFirstPage(const PageQuery& description);//throws a runtime_exception if there are no pages
+    size_t readBytes(address_t addr, void* buffer, size_t size);
+    size_t writeBytes(address_t addr, const void* buffer, size_t size);
+    address_t allocateMemory(size_t length, MemAccess access);
+    bool freeMemory(address_t addr);
 
-	unsigned long getPID() const { return pid; }
-	void* getBaseAddress() const { return baseAddress; }
-  std::vector<long> getThreads();
+    address_t uploadString(const std::string& s, MemAccess access, bool null_term = true);
 
-  void startDebugging();
-  void stopDebugging();
+    //Query functions that take PageQuery objects to find appropriate Pages
+    std::vector<PageInfo> queryPages(const PageQuery& description);
+    PageInfo queryFirstPage(const PageQuery& description);//throws a runtime_exception if there are no pages
 
-  void* getInternalHandle() const { return proc; }//only useful on windows
+    unsigned long getPID() const { return pid; }
+    address_t getBaseAddress() const { return baseAddress; }
+    std::vector<long> getThreads();
 
-	~Process();
+    void startDebugging();
+    void stopDebugging();
 
-	//returns a full list of PageInfo
-	std::vector<PageInfo> getPageList();
+    void* getInternalHandle() const { return proc; }//only useful on windows
 
-private:
-	void resolveBaseAddress(std::string filename);//called during constructor (requires filename to find the base page, or part of the filename)
+    ~Process();
 
-	unsigned long pid;
-	void* baseAddress;
-	void* proc;//only used on windows
-};
+    //returns a full list of PageInfo
+    std::vector<PageInfo> getPageList();
+
+  private:
+    void resolveBaseAddress(std::string filename);//called during constructor (requires filename to find the base page, or part of the filename)
+
+    unsigned long pid;
+    address_t baseAddress;
+    void* proc;//only used on windows
+  };
 
 }//namespace xtrainer
 

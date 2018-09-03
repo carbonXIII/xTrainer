@@ -23,7 +23,7 @@ Page::~Page(){
 	delete [] data;
 }
 
-size_t Page::read(size_t addr, void* buffer, size_t n){
+size_t Page::read(address_t addr, void* buffer, size_t n){
 	char* str = (char*)buffer;
 	size_t k = 0;
 	for(int i = addr - this->addr; i < addr - this->addr + n && i < size; i++){
@@ -33,7 +33,7 @@ size_t Page::read(size_t addr, void* buffer, size_t n){
 }
 
 void Page::update(Process* proc){
-	proc->readBytes((void*)addr, data, size);
+	proc->readBytes(addr, data, size);
 	lastUpdated = time(0);
 }
 
@@ -43,7 +43,7 @@ void MemoryManager::addPage(PageInfo&& pageInfo, int expiration){
 	pages.insert(Page(std::move(pageInfo),expiration));
 }
 
-const Page* MemoryManager::findPage(size_t addr){
+const Page* MemoryManager::findPage(address_t addr){
 	if(!pages.size())return nullptr;
 	auto page = std::lower_bound(pages.begin(), pages.end(), addr);
 	if(page == pages.end() || (page != pages.begin() && page->getStartAddress() > addr))page--;
@@ -53,11 +53,11 @@ const Page* MemoryManager::findPage(size_t addr){
 	return nullptr;
 }
 
-size_t MemoryManager::read(size_t addr, void* buffer, size_t n, bool forceUpdate){
+size_t MemoryManager::read(address_t addr, void* buffer, size_t n, bool forceUpdate){
 	Page* p = const_cast<Page*>(findPage(addr));
 
 	if(p == nullptr){
-		return parent->readBytes((void*)addr, buffer, n);
+		return parent->readBytes(addr, buffer, n);
 	}
 
 	if(allExpired || forceUpdate || p->isExpired())
@@ -67,9 +67,9 @@ size_t MemoryManager::read(size_t addr, void* buffer, size_t n, bool forceUpdate
 	return p->read(addr, buffer, n);
 }
 
-size_t MemoryManager::write(size_t addr, void* str, size_t n){
+size_t MemoryManager::write(address_t addr, void* str, size_t n){
 	allExpired = true;
-	return parent->writeBytes((void*)addr, str, n);
+	return parent->writeBytes(addr, str, n);
 }
 
 void dfs(int i, int* visited, std::vector<Property*> in, std::function<void(Property*)> callback){

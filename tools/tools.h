@@ -27,7 +27,7 @@ extern bool fileExists(const char* filename);
 
 template <typename T> void convert(std::string s, T& out);
 
-typedef char* address_t;
+typedef uint64_t address_t;
 
 } //namespace xtrainer
 

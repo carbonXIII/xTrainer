@@ -73,7 +73,7 @@ friend class Module;
 
 	bool isFloatingPoint() const;
 	bool isSigned() const;
-	size_t getAddr() const;
+	address_t getAddr() const;
 	int getSize() const;
 	Property* dependency() const;//returns the dependency of the property (or nullptr if it exists)
 
