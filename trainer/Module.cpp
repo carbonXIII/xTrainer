@@ -45,7 +45,7 @@ bool Property::isSigned() const{
 	return isSgned;
 }
 
-size_t Property::getAddr() const{
+address_t Property::getAddr() const{
 	return (addr.reference != 0) ? (size_t)(*addr.reference) + addr.offset : addr.offset;
 }
 
