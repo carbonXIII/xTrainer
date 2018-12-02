@@ -14,7 +14,7 @@
 #ifndef XTRAINER_H_
 #define XTRAINER_H_
 
-#include <trainer/MemoryManager.h>
+#include "trainer/MemoryManager.h"
 #include "tools/tools.h"
 
 #include "trainer/trainer.h"
