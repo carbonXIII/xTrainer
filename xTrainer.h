@@ -16,8 +16,11 @@
 
 #include "trainer/MemoryManager.h"
 #include "tools/tools.h"
-
 #include "trainer/trainer.h"
+
+// currently windows only functionality
+#ifndef TRAINER_LINUX
 #include "trainer/control.h"
+#endif /* TRAINER_LINUX */
 
 #endif /* XTRAINER_H_ */

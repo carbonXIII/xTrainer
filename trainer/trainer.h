@@ -73,7 +73,7 @@ namespace xtrainer{
     address_t allocateMemory(size_t length, MemAccess access);
     bool freeMemory(address_t addr);
 
-    address_t uploadString(const std::string& s, MemAccess access, bool null_term = true);
+    address_t uploadString(std::string& s, MemAccess access, bool null_term = true);
 
     //Query functions that take PageQuery objects to find appropriate Pages
     std::vector<PageInfo> queryPages(const PageQuery& description);

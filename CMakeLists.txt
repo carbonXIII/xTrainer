@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.1)
 project (xTrainer)
 
 set(SOURCE_DIRS					/trainer
-								/tools )
-						
+	                      /tools )
+
 foreach(dir ${SOURCE_DIRS})
 	aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}${dir} sources)
 endforeach()

@@ -113,7 +113,8 @@ namespace xtrainer{
         baseAddress = PageInfo(addr).startAddr;
         return;
       }
-    }baseAddress = nullptr;
+    }
+    baseAddress = 0;
 
     fin.close();
 #endif
@@ -160,11 +161,13 @@ namespace xtrainer{
       errorNum = GetLastError();
 #else
     iovec local, remote;
-    local.iov_base = buffer;
+
+    //the local buffer shouldn't be edited, but we need it to be non const
+    local.iov_base = const_cast<void*>(buffer);
     local.iov_len = size;
 
-    remote.iov_base = addr;
-    remote.iov_len = (void*)size;
+    remote.iov_base = (void*)addr;
+    remote.iov_len = size;
 
 
     written = process_vm_writev(pid, &local, 1, &remote, 1, 0);
@@ -182,6 +185,9 @@ namespace xtrainer{
   }
 
   address_t Process::allocateMemory(size_t length, MemAccess access){
+#ifdef TRAINER_LINUX
+    return 0;
+#else
     long _access;
 
     if(access == RO){
@@ -198,13 +204,18 @@ namespace xtrainer{
     }
 
     return (address_t)VirtualAllocEx(getInternalHandle(), 0, length, MEM_COMMIT | MEM_RESERVE, _access);
+#endif
   }
 
   bool Process::freeMemory(address_t addr){
+#ifdef TRAINER_LINUX
+    return false;
+#else
     return VirtualFreeEx(getInternalHandle(), (void*)addr, 0, MEM_RELEASE) != 0;
+#endif
   }
 
-  address_t Process::uploadString(const std::string& s, MemAccess access, bool null_term){
+  address_t Process::uploadString(std::string& s, MemAccess access, bool null_term){
     address_t ret = allocateMemory(s.size() + null_term, access);
     writeBytes(ret, &s[0], s.size());
     if(null_term)writeBytes(ret + s.size(), "\0", 1);
@@ -292,6 +303,9 @@ namespace xtrainer{
   std::vector<long> Process::getThreads(){
     vector<long> ret;
 
+#ifdef TRAINER_LINUX
+    // TODO: get threads on linux
+#else
     HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
     if(!snapshot){
       LOG << "Failed to retreive snapshot, error " << GetLastError() << "\n";
@@ -308,16 +322,23 @@ namespace xtrainer{
     }while(Thread32Next(snapshot, &buf));
 
     CloseHandle(snapshot);
+#endif
 
     return ret;
   }
 
   void Process::startDebugging(){
+#ifdef TRAINER_LINUX
+#else
     DebugActiveProcess(getPID());
+#endif
   }
 
   void Process::stopDebugging(){
+#ifdef TRAINER_LINUX
+#else
     DebugActiveProcessStop(getPID());
+#endif
   }
 
 }//namespace xtrainer

@@ -1,3 +1,5 @@
+#ifndef TRAINER_LINUX
+
 #include "control.h"
 #include "../tools/tools.h"
 #include "trainer.h"
@@ -257,3 +259,5 @@ namespace xtrainer{
   }
 
 }//namespace xtrainer
+
+#endif /* TRAINER_LINUX */
