@@ -2,12 +2,23 @@ cmake_minimum_required(VERSION 3.1)
 project (xTrainer)
 
 set(SOURCE_DIRS					/trainer
-	                      /tools )
+                        /tools
+                        /platform
+                        /core)
+
+set(SOURCE_SUB_DIRS     /platform/linux)
 
 foreach(dir ${SOURCE_DIRS})
 	aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}${dir} sources)
 endforeach()
+
+foreach(dir ${SOURCE_SUB_DIRS})
+	aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}${dir} sources)
+endforeach()
+
 include_directories(SOURCE_DIRS)
+
+message("sources: " ${sources})
 
 set (CMAKE_CXX_STANDARD 11)
 add_library (xTrainer ${sources})
