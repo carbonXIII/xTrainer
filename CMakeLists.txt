@@ -3,22 +3,19 @@ project (xTrainer)
 
 set(SOURCE_DIRS					/trainer
                         /tools
-                        /platform
+                        /platform/linux
                         /core)
 
-set(SOURCE_SUB_DIRS     /platform/linux)
+set(INCLUDE_DIRS		  	/trainer
+                        /tools
+                        /platform
+                        /core)
 
 foreach(dir ${SOURCE_DIRS})
 	aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}${dir} sources)
 endforeach()
 
-foreach(dir ${SOURCE_SUB_DIRS})
-	aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}${dir} sources)
-endforeach()
-
-include_directories(SOURCE_DIRS)
-
-message("sources: " ${sources})
+include_directories(INCLUDE_DIRS)
 
 set (CMAKE_CXX_STANDARD 11)
 add_library (xTrainer ${sources})

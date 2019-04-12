@@ -1,11 +1,18 @@
 #include "LinuxProcess.h"
+#include "LinuxThread.h"
+#include "abi.h"
 
 #include <sys/uio.h>
 #include <dirent.h>
 #include <fstream>
 
+// TODO: cleanup error handling, log and throw is dumb
+
 namespace xtrainer {
   namespace lnx { // linux is a reserved word?
+    LinuxProcess::LinuxProcess(unsigned long pid, ABI* abi)
+      : Process(pid, 0), abi(abi) {}
+
     size_t LinuxProcess::readBytes(address_t addr, void* buffer, size_t size) {
       size_t read = 0;
       int errorNum = 0;
@@ -16,7 +23,6 @@ namespace xtrainer {
 
       remote.iov_base = (void*)addr;
       remote.iov_len = size;
-
 
       long long _read = process_vm_readv(pid, &local, 1, &remote, 1, 0);
 
@@ -46,7 +52,6 @@ namespace xtrainer {
 
       remote.iov_base = (void*)addr;
       remote.iov_len = size;
-
 
       written = process_vm_writev(pid, &local, 1, &remote, 1, 0);
 
@@ -123,7 +128,7 @@ namespace xtrainer {
       while ((dp = readdir(dirp)) != NULL) {
         long tid = strtoul(dp->d_name, nullptr, 10);
         if(tid != 0)
-          threads.emplace_back(new FThread(tid));
+          threads.emplace_back(new LinuxThread(this, tid));
       }
       closedir(dirp);
     }
@@ -134,6 +139,10 @@ namespace xtrainer {
 
     FThread* LinuxProcess::getThread(int i) const {
       return threads[i].get();
+    }
+
+    ABI* LinuxProcess::getABI() {
+      return this->abi;
     }
   }
 }

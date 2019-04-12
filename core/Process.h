@@ -1,9 +1,14 @@
+#ifndef PROCESS_H
+#define PROCESS_H
+
 #include "../tools/tools.h"
 #include "FThread.h"
 
 #include <map>
 
 namespace xtrainer {
+  struct ABI;
+
   enum MemAccess {RO,/*Read Only*/
                   RW,/*Read Write*/
                   RE,/*Read and Exceute*/
@@ -53,6 +58,8 @@ namespace xtrainer {
     unsigned long getPID() const { return pid; }
     address_t getBaseAddress() const { return base_address; }
 
+    virtual ABI* getABI() = 0;
+
     // void startDebugging();
     // void stopDebugging();
 
@@ -96,3 +103,5 @@ namespace xtrainer {
     return pp.insert(pid, new T(pid, args...));
   }
 }
+
+#endif // PROCESS_H
