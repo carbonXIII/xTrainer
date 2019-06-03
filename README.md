@@ -8,7 +8,6 @@ Planned features:
 + Cross Platform support (see above)
 + Interactive Scripting Support (perhaps using boost::python)
 + DLL Injection
-+ ~~Packet sniffing (perhaps useful for botting)~~ (a library already exists, see http://libtins.github.io/)
 + GUI Overlays (perhaps through DLL injection)
 
 ## Building from source
