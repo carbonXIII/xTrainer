@@ -1,9 +1,0 @@
-E:/workspace/melee/MeleeExtractor/xTrainer/build/install/lib/libxTrainer.a
-E:/workspace/melee/MeleeExtractor/xTrainer/build/install/include/xTrainer/trainer/MemoryManager.h
-E:/workspace/melee/MeleeExtractor/xTrainer/build/install/include/xTrainer/trainer/Module.h
-E:/workspace/melee/MeleeExtractor/xTrainer/build/install/include/xTrainer/trainer/trainer.h
-E:/workspace/melee/MeleeExtractor/xTrainer/build/install/include/xTrainer/tools/csv.h
-E:/workspace/melee/MeleeExtractor/xTrainer/build/install/include/xTrainer/tools/log.h
-E:/workspace/melee/MeleeExtractor/xTrainer/build/install/include/xTrainer/tools/tools-imp.h
-E:/workspace/melee/MeleeExtractor/xTrainer/build/install/include/xTrainer/tools/tools.h
-E:/workspace/melee/MeleeExtractor/xTrainer/build/install/include/xTrainer/xTrainer.h
