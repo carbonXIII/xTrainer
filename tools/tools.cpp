@@ -5,7 +5,7 @@
  *      Author: Jordan Richards
  */
 
-#include "tools.h"
+#include <tools/tools.h>
 #include <fstream>
 
 namespace xtrainer{

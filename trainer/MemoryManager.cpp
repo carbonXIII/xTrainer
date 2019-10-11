@@ -5,7 +5,7 @@
  *  Author: Jordan Richards
  */
 
-#include "MemoryManager.h"
+#include <trainer/MemoryManager.h>
 #include <algorithm>
 #include <vector>
 #include <exception>

@@ -4,8 +4,8 @@
  *  Created on: Nov 17, 2017
  *      Author: Jordan Richards
  */
-#include "trainer.h"
-#include "../tools/tools.h"
+#include <trainer/trainer.h>
+#include <tools/tools.h>
 
 #include <fstream>
 #include <cstring>

@@ -5,8 +5,8 @@
  *      Author: Jordan Richards
  */
 
-#include "Module.h"
-#include "MemoryManager.h"
+#include <trainer/Module.h>
+#include <trainer/MemoryManager.h>
 
 #include <unordered_set>
 #include <memory>

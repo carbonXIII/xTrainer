@@ -7,7 +7,7 @@
  */
 #include <iostream>
 
-#include <xTrainer.h>
+#include <xTrainer/xTrainer.h>
 
 using namespace std;
 using namespace xtrainer;

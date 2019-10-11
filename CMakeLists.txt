@@ -1,27 +1,35 @@
 cmake_minimum_required(VERSION 3.1)
-project (xTrainer)
-
-set(SOURCE_DIRS					/trainer
-								/tools )
-						
-foreach(dir ${SOURCE_DIRS})
-	aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}${dir} sources)
-endforeach()
-include_directories(SOURCE_DIRS)
+project (xtrainer)
 
 set (CMAKE_CXX_STANDARD 11)
-add_library (xTrainer ${sources})
+
+set(SOURCE_DIRS	/trainer /tools)
+
+aux_source_directory(
+  ${CMAKE_CURRENT_SOURCE_DIR}/tools XTRAINER_SOURCES)
+aux_source_directory(
+  ${CMAKE_CURRENT_SOURCE_DIR}/trainer XTRAINER_SOURCES)
+
+add_library (xtrainer ${XTRAINER_SOURCES})
 
 if(NOT WIN32)
-	add_definitions(-DTRAINER_LINUX)
+	target_compile_definitions(xtrainer PUBLIC -DTRAINER_LINUX)
 endif()
 
-install(TARGETS xTrainer DESTINATION lib)
-foreach(dir ${SOURCE_DIRS})
-	install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}${dir} DESTINATION include/xTrainer FILES_MATCHING PATTERN "*.h")
-endforeach()
+target_include_directories(
+  xtrainer PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
 
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/xTrainer.h DESTINATION include/xTrainer)
+target_include_directories(
+  xtrainer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/xtrainer)
+
+install(TARGETS xtrainer DESTINATION lib)
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include DESTINATION include/)
+
+if(WIN32)
+	target_link_libraries (xtrainer PUBLIC psapi)
+endif()
 
 set(BUILD_SAMPLES TRUE CACHE BOOL "Build sample programs")
 

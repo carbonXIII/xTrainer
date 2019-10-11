@@ -4,7 +4,7 @@
  *  Created on: Dec 18, 2017
  *      Author: Jordan Richards
  */
-#include "log.h"
+#include <tools/log.h>
 
 namespace xtrainer{
 

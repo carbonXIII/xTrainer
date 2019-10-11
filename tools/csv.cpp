@@ -4,8 +4,8 @@
  *  Created on: Jan 2, 2018
  *      Author: Jordan Richards
  */
-#include "csv.h"
-#include "tools.h"
+#include <tools/csv.h>
+#include <tools/tools.h>
 
 #include <fstream>
 
