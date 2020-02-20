@@ -91,7 +91,7 @@ namespace xtrainer {
         rc = ptrace(PTRACE_GETREGS, tid, 0, &args.regs.regs);
         if(rc != 0) return rc;
 
-        rc = ptrace(PTRACE_GETFPREGS, tid, 0, &args.regs.regs);
+        rc = ptrace(PTRACE_GETFPREGS, tid, 0, &args.regs.fpregs);
         if(rc != 0) return rc;
 
         return 0;

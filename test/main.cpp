@@ -48,6 +48,12 @@ int main() {
       { char temp; cin >> temp; }
       threads[0]->start_debug();
 
+      xtrainer::RegSet rs;
+      rc = threads[0]->get_regs({rs});
+      if(rc != 0) die(__LINE__);
+
+      cout << "pc=" << rs.regs.rip << endl;
+
       { char temp; cin >> temp; }
       threads[0]->continue_debug({0});
     };
