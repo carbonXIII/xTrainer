@@ -2,10 +2,10 @@
 #define __XT_CORE_H
 
 #define DECLARE_STATIC(RET,FUNC,ARG)            \
-  static RET FUNC(const ARG& args = {})         \
+  static RET FUNC(const ARG& args = ARG())      \
   { return Derived::_##FUNC(args); }
 #define DECLARE(RET,FUNC,ARG)            \
-  RET FUNC(const ARG& args = {})         \
+  RET FUNC(const ARG& args = ARG())      \
   { return get_imp()->_##FUNC(args); }
 
 namespace xtrainer {
